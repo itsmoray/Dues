@@ -120,6 +120,12 @@ transition:transform .45s cubic-bezier(.2,.9,.2,1);z-index:60;max-width:90vw;tex
 .acard h2{font-size:28px;letter-spacing:-.03em}.acard .sub{color:var(--mute);margin-bottom:18px}.err{color:var(--out);font-size:13px;min-height:20px;margin-bottom:6px}
 .qr{background:#fff;padding:16px;border-radius:22px;width:fit-content;margin:4px auto 16px}
 .or{text-align:center;color:var(--mute);font-size:13px;margin:16px 0 12px}#gbtn{display:flex;justify-content:center;min-height:44px}
+.rw{position:relative;margin-bottom:10px;border-radius:20px;overflow:hidden}.rw .row{margin-bottom:0;touch-action:pan-y;user-select:none}.row.dr{background:var(--solid)}
+.h{position:absolute;top:0;bottom:0;width:50%;display:flex;align-items:center;padding:0 22px;color:#fff;font-weight:700;opacity:0;transition:opacity .15s}
+.hl{left:0;background:var(--a1)}.hr{right:0;justify-content:flex-end;background:var(--in)}.rw[data-d=r] .hl,.rw[data-d=l] .hr{opacity:1}
+.spark{margin-top:14px}.spark small{color:var(--mute);font-size:12.5px;display:flex;justify-content:space-between}.spark svg{width:100%;height:56px;display:block;margin-top:6px}
+.mn{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.mn button{width:40px;height:40px;border-radius:12px;background:var(--bg);font-size:20px}.mn button:disabled{opacity:.3}.mn b{font:700 17px Sora}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
 button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-offset:2px}
 </style>
@@ -143,7 +149,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
 <div class="app">
   <header>
     <div><h1 id="greet">Hello</h1><p id="date"></p></div>
-    <button class="icon" data-act="settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    <div style="display:flex;gap:10px"><button class="icon" data-act="summary" aria-label="Summary"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button><button class="icon" data-act="settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
   </header>
 
   <section class="glass hero">
@@ -159,6 +165,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
       <div class="stat i"><small>Owed to you</small><b id="inT">₹0</b></div>
       <div class="stat o"><small>You owe</small><b id="outT">₹0</b></div>
     </div>
+    <div class="spark" id="spark"></div>
   </section>
 
   <button class="over" id="over" data-act="over"></button>
@@ -175,7 +182,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
 /* Paste your Apps Script Web App /exec URL here. Leave empty to run in local-only mode. */
 const API_URL = 'https://script.google.com/macros/s/AKfycbxUuJcBC5bf0eqpshbPPtVtVmt8yjEQhX13hN2wHSOTV5UL1knYfK_DNZS_kWA48M_M/exec';
 /* Optional: OAuth Web client ID from Google Cloud Console, to enable "Continue with Google". Must match GOOGLE_CLIENT_ID in Code.js. */
-const GOOGLE_CLIENT_ID = '';
+const GOOGLE_CLIENT_ID = '120457271963-cvbfto7ktnph5d160fag45mc7l1akmg3.apps.googleusercontent.com';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -186,6 +193,7 @@ const days = d => Math.max(0, Math.round((new Date(new Date().toDateString()) - 
 const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 let S = JSON.parse(localStorage.getItem('dues.data') || 'null') || {people: [], entries: [], payments: []};
+S.recurring = S.recurring || [];
 const store = () => localStorage.setItem('dues.data', JSON.stringify(S));
 const tok = () => localStorage.getItem('dues.token') || '';
 
@@ -199,17 +207,17 @@ function sync(body) {
     .catch(() => toast('Offline. Changes are saved on this device.'));
 }
 function put(sheet, row) {
-  const a = S[sheet], i = a.findIndex(x => x.id === row.id);
+  const a = S[sheet] || (S[sheet] = []), i = a.findIndex(x => x.id === row.id);
   i < 0 ? a.push(row) : a[i] = row;
   store(); sync({action: 'save', sheet, row});
 }
-function del(sheet, id) { S[sheet] = S[sheet].filter(x => x.id !== id); store(); sync({action: 'remove', sheet, id}); }
+function del(sheet, id) { S[sheet] = (S[sheet] || []).filter(x => x.id !== id); store(); sync({action: 'remove', sheet, id}); }
 async function load() {
   if (!API_URL || !tok()) return;
   try {
     const j = await call({action: 'all'});
     if (j.error) return j.error === 'auth' ? showAuth() : toast(j.error);
-    S = {people: j.people, entries: j.entries, payments: j.payments}; store(); setMe(j.me); render();
+    S = {people: j.people, entries: j.entries, payments: j.payments, recurring: j.recurring || []}; store(); setMe(j.me); render(); runRecurring();
   } catch (e) { toast('Offline. Showing saved data.'); }
 }
 
@@ -247,10 +255,15 @@ function render() {
   $('#cnt').textContent = ppl.length ? `${ppl.filter(x => x.b).length} open` : '';
   $('#list').innerHTML = ppl.length ? ppl.map(({p, b}, i) => {
     const o = openOf(p.id)[0];
-    return `<button class="row ${b ? '' : 'settled'} ${first ? 'go' : ''}" style="--i:${i}" data-act="person" data-id="${p.id}">
+    return `<div class="rw"><span class="h hl">Remind</span><span class="h hr">Settle</span><button class="row ${b ? '' : 'settled'} ${first ? 'go' : ''}" style="--i:${i}" data-act="person" data-id="${p.id}">
       ${avatar(p)}<div><div class="n">${esc(p.name)}</div><div class="s">${o ? `Day ${days(o.date)} · ${esc(o.reason)}` : 'All settled'}</div></div>
-      <div class="amt ${b > 0 ? 'pos' : b < 0 ? 'neg' : 'zero'}">${b > 0 ? '+' : b < 0 ? '−' : ''}${b ? fmt(Math.abs(b)) : '₹0'}</div></button>`;
+      <div class="amt ${b > 0 ? 'pos' : b < 0 ? 'neg' : 'zero'}">${b > 0 ? '+' : b < 0 ? '−' : ''}${b ? fmt(Math.abs(b)) : '₹0'}</div></button></div>`;
   }).join('') : `<div class="empty"><b>No one here yet</b>Tap Add to split a bill or record a loan.</div>`;
+  const pts = []; for (let i = 29; i >= 0; i--) { const dt = new Date(Date.now() - i * 864e5 - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10); let v = 0;
+    S.entries.forEach(e => { if (e.date <= dt) v += (e.dir === 'lent' ? 1 : -1) * Number(e.amount); });
+    S.payments.forEach(p => { if (p.date <= dt) { const e = S.entries.find(x => x.id === p.entryId); if (e) v -= (e.dir === 'lent' ? 1 : -1) * Number(p.amount); } }); pts.push(v); }
+  const lo = Math.min(...pts), rg = (Math.max(...pts) - lo) || 1, xy = pts.map((v, i) => `${(i / 29 * 300).toFixed(1)},${(54 - (v - lo) / rg * 48).toFixed(1)}`).join(' ');
+  $('#spark').innerHTML = S.entries.length ? `<small><span>Net balance, last 30 days</span><span>${fmt(Math.abs(pts[29]))}</span></small><svg viewBox="0 0 300 58" preserveAspectRatio="none"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--a1)" stop-opacity=".35"/><stop offset="1" stop-color="var(--a1)" stop-opacity="0"/></linearGradient></defs><polygon points="0,58 ${xy} 300,58" fill="url(#sg)"/><polyline points="${xy}" fill="none" stroke="var(--a2)" stroke-width="2.2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>` : '';
   const od = S.people.map(p => ({p, v: openOf(p.id).filter(e => e.dir === 'lent' && days(e.date) > 14).reduce((t, e) => t + leftOf(e), 0)})).filter(x => x.v);
   const ov = $('#over'); ov.classList.toggle('show', od.length > 0); ov.dataset.id = od[0] ? od[0].p.id : '';
   ov.textContent = od.length ? `${od.map(x => x.p.name).join(', ')} ${od.length > 1 ? 'have' : 'has'} owed you for over 2 weeks · ${fmt(od.reduce((t, x) => t + x.v, 0))}` : '';
@@ -265,7 +278,7 @@ function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('s
 
 let A = {mode: 'split', sel: new Set(), me: true, newp: false};
 function addSheet(pre) {
-  A = {mode: pre ? 'lent' : 'split', sel: new Set(pre ? [pre] : []), me: true, newp: false, custom: false, cs: {}};
+  A = {mode: pre ? 'lent' : 'split', sel: new Set(pre ? [pre] : []), me: true, newp: false, custom: false, cs: {}, rep: ''};
   sheet(`<h3>New entry</h3>
   <div class="seg" id="modes"><button data-act="mode" data-m="split">Split a bill</button><button data-act="mode" data-m="lent">They owe me</button><button data-act="mode" data-m="borrowed">I owe them</button></div>
   <div class="f" id="amtF"><label id="amtL">Total bill</label><input id="amt" class="amt-in" inputmode="decimal" placeholder="₹0" autocomplete="off"></div>
@@ -274,6 +287,7 @@ function addSheet(pre) {
   <div class="f"><label id="whoL">Split with</label><div class="chips" id="chips"></div></div>
   <div id="newp" style="display:none" class="two f"><input id="npn" placeholder="Name"><input id="npp" inputmode="tel" placeholder="WhatsApp number"></div>
   <div id="cust"></div><div class="tog" id="cuT" data-act="cust"><span>Custom amount per person</span><i class="sw" id="cuS"></i></div>
+  <div class="tog" id="rpT" data-act="rep"><span id="rpL">Repeat: off</span><i class="sw" id="rpS"></i></div>
   <div class="tog" id="meT" data-act="me"><span>Include me in the split</span><i class="sw on" id="meS"></i></div>
   <p class="hint" id="prev"></p>
   <button class="btn" data-act="save">Save entry</button>`);
@@ -285,6 +299,7 @@ function upd() {
   $('#amtL').textContent = sp ? 'Total bill' : 'Amount'; $('#whoL').textContent = sp ? 'Split with' : A.mode === 'lent' ? 'Who owes you' : 'Who you owe';
   $('#meT').style.display = sp && !A.custom ? '' : 'none'; $('#meS').classList.toggle('on', A.me);
   $('#cuT').style.display = sp ? '' : 'none'; $('#cuS').classList.toggle('on', A.custom && sp); $('#amtF').style.display = sp && A.custom ? 'none' : '';
+  $('#rpL').textContent = 'Repeat: ' + (A.rep || 'off'); $('#rpS').classList.toggle('on', !!A.rep);
   const nm = id => id === 'new' ? ($('#npn').value || 'New person') : (S.people.find(p => p.id === id) || {}).name;
   $('#cust').innerHTML = sp && A.custom ? [...A.sel, ...(A.newp ? ['new'] : [])].map(id => `<div class="crow"><span>${esc(nm(id))}</span><input class="cs" data-pid="${id}" inputmode="decimal" placeholder="₹0" value="${esc(A.cs[id] || '')}"></div>`).join('') : '';
   $('#chips').innerHTML = S.people.map(p => `<button class="chip ${A.sel.has(p.id) ? 'on' : ''}" data-act="chip" data-id="${p.id}">${esc(p.name)}</button>`).join('')
@@ -302,7 +317,9 @@ function saveAdd() {
   if (cu && [...ids, ...(nm ? ['new'] : [])].some(k => !(parseFloat(A.cs[k]) > 0))) return toast('Enter an amount for everyone');
   if (nm) { const p = {id: uid(), name: nm, phone: $('#npp').value.trim(), owner: 'me', created: today()}; put('people', p); ids.push(p.id); A.cs[p.id] = A.cs.new; }
   const share = sp && !cu ? Math.round(amt / (ids.length + (A.me ? 1 : 0)) * 100) / 100 : amt;
-  ids.forEach(id => put('entries', {id: uid(), personId: id, dir: sp ? 'lent' : A.mode, amount: cu ? parseFloat(A.cs[id]) : share, reason, date, owner: 'me'}));
+  ids.forEach(id => { const amount = cu ? parseFloat(A.cs[id]) : share, dir = sp ? 'lent' : A.mode;
+    put('entries', {id: uid(), personId: id, dir, amount, reason, date, owner: 'me'});
+    if (A.rep) put('recurring', {id: uid(), personId: id, dir, amount, reason, every: A.rep, next: addP(date, A.rep), owner: 'me'}); });
   closeSheet(); render(); toast(cu ? 'Split saved' : sp ? `Split saved. ${fmt(share)} each` : 'Entry saved'); navigator.vibrate && navigator.vibrate(12);
 }
 
@@ -317,7 +334,7 @@ function personSheet(pid) {
       : `<div class="ac"><button class="x" data-act="delen" data-id="${e.id}">Delete</button></div>`}</div>`; };
   sheet(`<div class="ph">${avatar(p)}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="big ${b > 0 ? 'pos' : b < 0 ? 'neg' : 'zero'}">${b > 0 ? fmt(b) + ' owes you' : b < 0 ? 'You owe ' + fmt(-b) : 'All settled'}</div></div></div>
   <div class="acts">${b > 0 ? `<button class="btn" data-act="remind" data-id="${pid}">Send reminder</button>` : ''}${b > 0 ? `<button class="btn ghost" data-act="qr" data-id="${pid}">Show QR</button>` : ''}<button class="btn ghost" data-act="addfor" data-id="${pid}">Add entry</button>${both ? `<button class="btn ghost" data-act="settle" data-id="${pid}">Settle up</button>` : ''}</div>
-  ${open.map(card).join('')}${done.length ? `<div class="sec" style="margin:18px 4px 10px"><h2>Settled</h2></div>${done.map(card).join('')}` : ''}
+  ${(S.recurring || []).filter(r => r.personId === pid).map(r => `<div class="en"><div class="top"><div><b>${esc(r.reason)}</b><div class="m">Repeats ${r.every} · next ${r.next}</div></div><b>${fmt(r.amount)}</b></div><div class="ac"><button class="x" data-act="stoprec" data-id="${r.id}">Stop repeating</button></div></div>`).join('')}${open.map(card).join('')}${done.length ? `<div class="sec" style="margin:18px 4px 10px"><h2>Settled</h2></div>${done.map(card).join('')}` : ''}
   ${!open.length && !done.length ? '<div class="empty">No entries yet.</div>' : ''}
   <button class="btn ghost danger" style="margin-top:12px" data-act="delp" data-id="${pid}">Remove ${esc(p.name)}</button>`);
 }
@@ -396,6 +413,40 @@ function fx() {
   const x = c.getContext('2d'), P = Array.from({length: 70}, () => ({x: innerWidth / 2, y: innerHeight * .62, vx: (Math.random() - .5) * 12, vy: -Math.random() * 14 - 4, r: Math.random() * 5 + 3, h: Math.random() * 360, a: 1}));
   (function f() { x.clearRect(0, 0, c.width, c.height); P.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .45; p.a -= .012; x.globalAlpha = Math.max(p.a, 0); x.fillStyle = `hsl(${p.h} 90% 60%)`; x.fillRect(p.x, p.y, p.r, p.r * 1.6); }); P[0].a > 0 ? requestAnimationFrame(f) : c.remove(); })();
 }
+const addP = (d, e) => { const x = new Date(d + 'T00:00:00');
+  if (e === 'weekly') x.setDate(x.getDate() + 7); else { const day = x.getDate(); x.setDate(1); x.setMonth(x.getMonth() + 1); x.setDate(Math.min(day, new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate())); }
+  return new Date(x.getTime() - x.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+function runRecurring() {
+  const t = today(); let n = 0;
+  (S.recurring || []).slice().forEach(r => {
+    if (!S.people.some(p => p.id === r.personId)) return del('recurring', r.id);
+    let nx = r.next, k = 0;
+    while (nx <= t && k++ < 24) { put('entries', {id: uid(), personId: r.personId, dir: r.dir, amount: r.amount, reason: r.reason, date: nx, owner: 'me'}); nx = addP(nx, r.every); n++; }
+    if (nx !== r.next) put('recurring', {...r, next: nx});
+  });
+  if (n) { render(); toast(`${n} recurring ${n > 1 ? 'entries' : 'entry'} added`); }
+}
+function swipeAct(pid, k) {
+  const p = S.people.find(x => x.id === pid), b = bal(pid);
+  if (k === 'remind') return b > 0 ? remind(pid) : toast(`${p.name} doesn't owe you anything`);
+  const o = openOf(pid); if (!o.length) return toast('Already settled');
+  if (!confirm(`Mark everything with ${p.name} as fully paid?`)) return;
+  o.forEach(e => put('payments', {id: uid(), entryId: e.id, amount: leftOf(e), date: today(), owner: 'me'})); render(); toast('Settled'); fx();
+}
+function summary(off) {
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + off);
+  const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'), sum = a => a.reduce((t, x) => t + Number(x.amount), 0);
+  const me = S.entries.filter(e => e.date.startsWith(k)), lent = me.filter(e => e.dir === 'lent'), bor = me.filter(e => e.dir !== 'lent');
+  const pm = S.payments.filter(p => p.date.startsWith(k)), kind = p => (S.entries.find(e => e.id === p.entryId) || {}).dir;
+  const got = pm.filter(p => kind(p) === 'lent'), paid = pm.filter(p => kind(p) === 'borrowed');
+  const slow = S.people.map(p => ({p, o: openOf(p.id).filter(e => e.dir === 'lent')[0]})).filter(x => x.o).sort((a, b) => a.o.date.localeCompare(b.o.date))[0];
+  const top = S.people.map(p => ({p, v: sum(lent.filter(e => e.personId === p.id))})).filter(x => x.v).sort((a, b) => b.v - a.v).slice(0, 3);
+  sheet(`<h3>Summary</h3><div class="mn"><button data-act="sm" data-o="${off - 1}">‹</button><b>${d.toLocaleDateString('en-IN', {month: 'long', year: 'numeric'})}</b><button data-act="sm" data-o="${off + 1}" ${off >= 0 ? 'disabled' : ''}>›</button></div>
+  <div class="sg"><div class="stat i"><small>Lent out</small><b>${fmt(sum(lent))}</b></div><div class="stat i"><small>Received back</small><b>${fmt(sum(got))}</b></div>
+  <div class="stat o"><small>Borrowed</small><b>${fmt(sum(bor))}</b></div><div class="stat o"><small>You repaid</small><b>${fmt(sum(paid))}</b></div></div>
+  ${slow ? `<div class="en"><small style="color:var(--mute)">Slowest to pay</small><div class="top"><b>${esc(slow.p.name)}</b><b class="neg">Day ${days(slow.o.date)}</b></div><div class="m">${esc(slow.o.reason)} · ${fmt(leftOf(slow.o))} still open</div></div>` : ''}
+  ${top.length ? `<div class="sec" style="margin:14px 4px 10px"><h2>Most lent this month</h2></div>${top.map(x => `<div class="en"><div class="top"><b>${esc(x.p.name)}</b><b>${fmt(x.v)}</b></div></div>`).join('')}` : '<div class="empty">Nothing lent this month.</div>'}`);
+}
 function settings() {
   const t = localStorage.getItem('dues.theme') || 'system';
   sheet(`<h3>Settings</h3><div class="f"><label>Theme</label><div class="seg" id="th">${['system', 'light', 'dark'].map(x => `<button class="${t === x ? 'on' : ''}" data-act="theme" data-t="${x}">${x[0].toUpperCase() + x.slice(1)}</button>`).join('')}</div></div>
@@ -422,7 +473,7 @@ document.addEventListener('click', e => {
   else if (act === 'over') { if (id) personSheet(id); }
   else if (act === 'settings') settings();
   else if (act === 'close') closeSheet();
-  else if (act === 'person') personSheet(id);
+  else if (act === 'person') { if (!swiped) personSheet(id); }
   else if (act === 'mode') { A.mode = t.dataset.m; if (A.mode !== 'split' && A.sel.size + (A.newp ? 1 : 0) > 1) { A.sel.clear(); A.newp = false; } upd(); }
   else if (act === 'chip') { if (A.mode === 'split') A.sel.has(id) ? A.sel.delete(id) : A.sel.add(id); else { A.sel = new Set([id]); A.newp = false; } upd(); }
   else if (act === 'newp') { A.newp = !A.newp; if (A.mode !== 'split' && A.newp) A.sel.clear(); upd(); }
@@ -444,6 +495,10 @@ document.addEventListener('click', e => {
   else if (act === 'savekey') { const nm = $('#nm').value.trim(), up = $('#upi').value.trim(); localStorage.setItem('dues.name', nm); localStorage.setItem('dues.upi', up);
     sync({action: 'profile', name: nm, upi: up}); greet(); closeSheet(); toast('Saved'); }
   else if (act === 'qr') qrSheet(id);
+  else if (act === 'summary') summary(0);
+  else if (act === 'sm') summary(+t.dataset.o);
+  else if (act === 'rep') { A.rep = {'': 'monthly', monthly: 'weekly', weekly: ''}[A.rep]; upd(); }
+  else if (act === 'stoprec') { const r = S.recurring.find(x => x.id === id); del('recurring', id); personSheet(r.personId); toast('Stopped repeating'); }
   else if (act === 'logout') logout();
   else if (act === 'amode') authMode(t.dataset.m);
   else if (act === 'auth') doAuth();
@@ -451,12 +506,21 @@ document.addEventListener('click', e => {
 document.addEventListener('input', e => { if (e.target.classList.contains('cs')) A.cs[e.target.dataset.pid] = e.target.value; });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); if (e.key === 'Enter' && $('#auth').classList.contains('show')) doAuth(); });
 
+/* swipe on person rows: right = remind, left = settle */
+let sw = null, swiped = false;
+$('#list').addEventListener('pointerdown', e => { const r = e.target.closest('.row'); if (r) sw = {r, x: e.clientX, dx: 0, on: false}; });
+addEventListener('pointermove', e => { if (!sw) return; const dx = e.clientX - sw.x; if (!sw.on && Math.abs(dx) > 12) { sw.on = true; sw.r.classList.add('dr'); } if (!sw.on) return;
+  sw.dx = Math.max(-110, Math.min(110, dx)); sw.r.style.transition = 'none'; sw.r.style.transform = `translateX(${sw.dx}px)`; sw.r.parentNode.dataset.d = sw.dx > 0 ? 'r' : 'l'; });
+const swEnd = () => { if (!sw) return; const {r, dx, on} = sw; sw = null; r.style.transition = ''; r.style.transform = ''; r.classList.remove('dr'); delete r.parentNode.dataset.d;
+  if (!on) return; swiped = true; setTimeout(() => swiped = false, 60); if (dx > 70) swipeAct(r.dataset.id, 'remind'); else if (dx < -70) swipeAct(r.dataset.id, 'settle'); };
+addEventListener('pointerup', swEnd); addEventListener('pointercancel', swEnd);
+
 /* ---------- boot ---------- */
 const h = new Date().getHours();
 const greet = () => { const n = (localStorage.getItem('dues.name') || '').split(' ')[0]; $('#greet').textContent = (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + (n ? ', ' + n : ''); };
 greet();
 $('#date').textContent = new Date().toLocaleDateString('en-IN', {weekday: 'long', day: 'numeric', month: 'long'});
-setTimeout(() => { render(); if (API_URL && !tok()) showAuth(); }, 1700);
+setTimeout(() => { render(); if (API_URL && !tok()) showAuth(); if (!API_URL) runRecurring(); }, 1700);
 setTimeout(() => { $('#splash').classList.add('gone'); setTimeout(() => $('#splash').remove(), 800); }, 2000);
 load();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
