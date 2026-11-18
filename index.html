@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080B1A">
 <link rel="manifest" href="manifest.json">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -113,6 +114,10 @@ transition:transform .45s cubic-bezier(.2,.9,.2,1);z-index:60;max-width:90vw;tex
 #splash p{color:var(--mute);opacity:0;animation:fade .8s 1s forwards}@keyframes fade{to{opacity:1}}
 .over{display:none;margin-top:14px;padding:13px 16px;border-radius:20px;background:rgba(255,170,30,.13);border:1px solid rgba(255,170,30,.3);color:var(--warn);text-align:left;width:100%;font-size:14px;font-weight:700}.over.show{display:block}
 .crow{display:grid;grid-template-columns:1fr 130px;gap:10px;align-items:center;margin-bottom:8px}
+.auth{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:20px;overflow:auto;background:radial-gradient(60% 40% at 12% 0%,var(--g1),transparent),radial-gradient(50% 35% at 95% 8%,var(--g2),transparent),var(--bg)}
+.auth.show{display:flex}.acard{width:100%;max-width:400px;padding:28px 22px;animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
+.acard h2{font-size:28px;letter-spacing:-.03em}.acard .sub{color:var(--mute);margin-bottom:18px}.err{color:var(--out);font-size:13px;min-height:20px;margin-bottom:6px}
+.qr{background:#fff;padding:16px;border-radius:22px;width:fit-content;margin:4px auto 16px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
 button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-offset:2px}
 </style>
@@ -122,6 +127,15 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
   <svg viewBox="0 0 120 120"><circle class="s1" cx="60" cy="60" r="44"/><circle class="s2" cx="60" cy="60" r="44"/></svg>
   <h2>Dues</h2><p>Who owes whom, always clear.</p>
 </div>
+
+<div class="auth" id="auth"><div class="glass acard">
+  <h2>Dues</h2><p class="sub" id="aSub">Welcome back</p>
+  <div class="seg"><button data-act="amode" data-m="login" class="on">Log in</button><button data-act="amode" data-m="signup">Sign up</button></div>
+  <div class="f" id="aName" style="display:none"><label>Name</label><input id="an" autocomplete="name"></div>
+  <div class="f"><label>Email</label><input id="ae" type="email" autocomplete="email"></div>
+  <div class="f"><label>Password</label><input id="ap" type="password" autocomplete="current-password"></div>
+  <p class="err" id="aErr"></p><button class="btn" id="aBtn" data-act="auth">Log in</button>
+</div></div>
 
 <div class="app">
   <header>
@@ -156,7 +170,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
 
 <script>
 /* Paste your Apps Script Web App /exec URL here. Leave empty to run in local-only mode. */
-const API_URL = 'https://script.google.com/macros/s/AKfycbxUuJcBC5bf0eqpshbPPtVtVmt8yjEQhX13hN2wHSOTV5UL1knYfK_DNZS_kWA48M_M/exec';
+const API_URL = '';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -168,15 +182,15 @@ const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 let S = JSON.parse(localStorage.getItem('dues.data') || 'null') || {people: [], entries: [], payments: []};
 const store = () => localStorage.setItem('dues.data', JSON.stringify(S));
-const key = () => localStorage.getItem('dues.key') || '';
+const tok = () => localStorage.getItem('dues.token') || '';
 
 /* ---------- data + sync ---------- */
 function call(body) {
-  return fetch(API_URL, {method: 'POST', body: JSON.stringify({key: key(), ...body})}).then(r => r.json());
+  return fetch(API_URL, {method: 'POST', body: JSON.stringify({token: tok(), ...body})}).then(r => r.json());
 }
 function sync(body) {
-  if (!API_URL) return;
-  call(body).then(j => { if (j.error) toast(j.error === 'unauthorized' ? 'Wrong passcode. Check Settings.' : j.error); })
+  if (!API_URL || !tok()) return;
+  call(body).then(j => { if (j.error) j.error === 'auth' ? showAuth() : toast(j.error); })
     .catch(() => toast('Offline. Changes are saved on this device.'));
 }
 function put(sheet, row) {
@@ -186,11 +200,11 @@ function put(sheet, row) {
 }
 function del(sheet, id) { S[sheet] = S[sheet].filter(x => x.id !== id); store(); sync({action: 'remove', sheet, id}); }
 async function load() {
-  if (!API_URL) return;
+  if (!API_URL || !tok()) return;
   try {
     const j = await call({action: 'all'});
-    if (j.error) return toast(j.error === 'unauthorized' ? 'Add your passcode in Settings' : j.error);
-    S = {people: j.people, entries: j.entries, payments: j.payments}; store(); render();
+    if (j.error) return j.error === 'auth' ? showAuth() : toast(j.error);
+    S = {people: j.people, entries: j.entries, payments: j.payments}; store(); setMe(j.me); render();
   } catch (e) { toast('Offline. Showing saved data.'); }
 }
 
@@ -297,7 +311,7 @@ function personSheet(pid) {
       <div class="pay" id="pay-${e.id}"><input inputmode="decimal" value="${l}"><button class="btn sm" data-act="paysave" data-id="${e.id}">Save</button></div>`
       : `<div class="ac"><button class="x" data-act="delen" data-id="${e.id}">Delete</button></div>`}</div>`; };
   sheet(`<div class="ph">${avatar(p)}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="big ${b > 0 ? 'pos' : b < 0 ? 'neg' : 'zero'}">${b > 0 ? fmt(b) + ' owes you' : b < 0 ? 'You owe ' + fmt(-b) : 'All settled'}</div></div></div>
-  <div class="acts">${b > 0 ? `<button class="btn" data-act="remind" data-id="${pid}">Send reminder</button>` : ''}<button class="btn ghost" data-act="addfor" data-id="${pid}">Add entry</button>${both ? `<button class="btn ghost" data-act="settle" data-id="${pid}">Settle up</button>` : ''}</div>
+  <div class="acts">${b > 0 ? `<button class="btn" data-act="remind" data-id="${pid}">Send reminder</button>` : ''}${b > 0 ? `<button class="btn ghost" data-act="qr" data-id="${pid}">Show QR</button>` : ''}<button class="btn ghost" data-act="addfor" data-id="${pid}">Add entry</button>${both ? `<button class="btn ghost" data-act="settle" data-id="${pid}">Settle up</button>` : ''}</div>
   ${open.map(card).join('')}${done.length ? `<div class="sec" style="margin:18px 4px 10px"><h2>Settled</h2></div>${done.map(card).join('')}` : ''}
   ${!open.length && !done.length ? '<div class="empty">No entries yet.</div>' : ''}
   <button class="btn ghost danger" style="margin-top:12px" data-act="delp" data-id="${pid}">Remove ${esc(p.name)}</button>`);
@@ -310,7 +324,46 @@ function remind(pid) {
   if (ph) window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`, '_blank');
   else { navigator.clipboard && navigator.clipboard.writeText(msg); toast('No number saved. Message copied.'); }
 }
-const upi = t => { const id = localStorage.getItem('dues.upi'); return id ? `\n\nPay by UPI: ${id}\nupi://pay?pa=${encodeURIComponent(id)}&pn=${encodeURIComponent(localStorage.getItem('dues.name') || 'Dues')}&am=${t}&cu=INR&tn=Dues` : ''; };
+const upiLink = t => { const id = localStorage.getItem('dues.upi'); if (!id) return null;
+  const q = `pa=${encodeURIComponent(id)}&pn=${encodeURIComponent(localStorage.getItem('dues.name') || 'Dues')}&am=${t}&cu=INR&tn=Dues`;
+  return {raw: 'upi://pay?' + q, web: location.origin + location.pathname.replace(/[^/]*$/, '') + 'pay.html?' + q}; };
+const upi = t => { const l = upiLink(t); return l ? `\n\nPay by UPI: ${localStorage.getItem('dues.upi')}\nOpen to pay: ${l.web}` : ''; };
+function qrSheet(pid) {
+  const p = S.people.find(x => x.id === pid), b = bal(pid), l = upiLink(b);
+  if (!l) return toast('Add your UPI ID in Settings first');
+  sheet(`<h3>Scan to pay</h3><p class="hint" style="margin-top:-6px">${esc(p.name)} pays ${fmt(b)} to ${esc(localStorage.getItem('dues.upi'))}</p><div id="qr" class="qr"></div>
+  <a class="btn" style="display:block;text-align:center;text-decoration:none" href="${l.raw}">Open in UPI app</a>`);
+  if (window.QRCode) new QRCode($('#qr'), {text: l.raw, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M}); else $('#qr').textContent = 'QR needs an internet connection';
+}
+/* ---------- accounts ---------- */
+let AM = 'login';
+function showAuth() { closeSheet(); $('#auth').classList.add('show'); }
+function authMode(m) {
+  AM = m; document.querySelectorAll('#auth .seg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  $('#aName').style.display = m === 'signup' ? '' : 'none'; $('#aBtn').textContent = m === 'signup' ? 'Create account' : 'Log in';
+  $('#aSub').textContent = m === 'signup' ? 'Create your account' : 'Welcome back'; $('#aErr').textContent = '';
+  $('#ap').autocomplete = m === 'signup' ? 'new-password' : 'current-password';
+}
+async function doAuth() {
+  const b = $('#aBtn'); b.disabled = true; $('#aErr').textContent = '';
+  try {
+    const j = await call({action: AM, email: $('#ae').value, password: $('#ap').value, name: $('#an').value});
+    if (j.error) { $('#aErr').textContent = j.error; return; }
+    if (localStorage.getItem('dues.email') !== j.me.email) { S = {people: [], entries: [], payments: []}; store(); }
+    localStorage.setItem('dues.token', j.token); setMe(j.me); $('#ap').value = '';
+    $('#auth').classList.remove('show'); render(); load();
+  } catch (e) { $('#aErr').textContent = 'Could not reach the server. Check your connection.'; }
+  finally { b.disabled = false; }
+}
+function setMe(m) {
+  if (!m) return;
+  localStorage.setItem('dues.email', m.email); localStorage.setItem('dues.name', m.name || ''); localStorage.setItem('dues.upi', m.upi || ''); greet();
+}
+function logout() {
+  call({action: 'logout'}).catch(() => {});
+  ['token', 'data', 'name', 'upi', 'email'].forEach(k => localStorage.removeItem('dues.' + k));
+  S = {people: [], entries: [], payments: []}; render(); greet(); showAuth();
+}
 function settleUp(pid) {
   const o = openOf(pid), L = o.filter(e => e.dir === 'lent'), B = o.filter(e => e.dir !== 'lent'), sum = g => g.reduce((t, e) => t + leftOf(e), 0), x = Math.min(sum(L), sum(B));
   [L, B].forEach(g => { let r = x; g.forEach(e => { const v = Math.min(r, leftOf(e)); if (v > 0) { put('payments', {id: uid(), entryId: e.id, amount: v, date: today(), owner: 'me'}); r = Math.round((r - v) * 100) / 100; } }); });
@@ -325,7 +378,7 @@ function fx() {
 function settings() {
   const t = localStorage.getItem('dues.theme') || 'system';
   sheet(`<h3>Settings</h3><div class="f"><label>Theme</label><div class="seg" id="th">${['system', 'light', 'dark'].map(x => `<button class="${t === x ? 'on' : ''}" data-act="theme" data-t="${x}">${x[0].toUpperCase() + x.slice(1)}</button>`).join('')}</div></div>
-  <div class="f"><label>Passcode (must match SECRET in Code.js)</label><input id="key" type="password" value="${esc(key())}" placeholder="Enter passcode"></div>
+  ${API_URL ? `<div class="f"><label>Signed in as</label><div class="tog" style="margin:0"><span>${esc(localStorage.getItem('dues.email') || '')}</span><button data-act="logout" style="color:var(--out);font-weight:700">Log out</button></div></div>` : ''}
   <div class="f"><label>Your name (shown on payment requests)</label><input id="nm" value="${esc(localStorage.getItem('dues.name') || '')}"></div><div class="f"><label>Your UPI ID</label><input id="upi" value="${esc(localStorage.getItem('dues.upi') || '')}" placeholder="name@bank"></div>
   <p class="hint">${API_URL ? 'Connected to Google Sheets.' : 'Local mode. Data stays on this device until you set API_URL in index.html.'}</p>
   <button class="btn" data-act="savekey">Save</button>`);
@@ -367,16 +420,22 @@ document.addEventListener('click', e => {
     del('people', id); closeSheet(); render(); }
   else if (act === 'remind') remind(id);
   else if (act === 'theme') { localStorage.setItem('dues.theme', t.dataset.t); applyTheme(); settings(); }
-  else if (act === 'savekey') { localStorage.setItem('dues.key', $('#key').value); localStorage.setItem('dues.name', $('#nm').value.trim()); localStorage.setItem('dues.upi', $('#upi').value.trim()); closeSheet(); load(); toast('Saved'); }
+  else if (act === 'savekey') { const nm = $('#nm').value.trim(), up = $('#upi').value.trim(); localStorage.setItem('dues.name', nm); localStorage.setItem('dues.upi', up);
+    sync({action: 'profile', name: nm, upi: up}); greet(); closeSheet(); toast('Saved'); }
+  else if (act === 'qr') qrSheet(id);
+  else if (act === 'logout') logout();
+  else if (act === 'amode') authMode(t.dataset.m);
+  else if (act === 'auth') doAuth();
 });
 document.addEventListener('input', e => { if (e.target.classList.contains('cs')) A.cs[e.target.dataset.pid] = e.target.value; });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); if (e.key === 'Enter' && $('#auth').classList.contains('show')) doAuth(); });
 
 /* ---------- boot ---------- */
 const h = new Date().getHours();
-$('#greet').textContent = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+const greet = () => { const n = (localStorage.getItem('dues.name') || '').split(' ')[0]; $('#greet').textContent = (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + (n ? ', ' + n : ''); };
+greet();
 $('#date').textContent = new Date().toLocaleDateString('en-IN', {weekday: 'long', day: 'numeric', month: 'long'});
-setTimeout(() => { render(); }, 1700);
+setTimeout(() => { render(); if (API_URL && !tok()) showAuth(); }, 1700);
 setTimeout(() => { $('#splash').classList.add('gone'); setTimeout(() => $('#splash').remove(), 800); }, 2000);
 load();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
