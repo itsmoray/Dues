@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080B1A">
 <link rel="manifest" href="manifest.json">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -118,6 +119,7 @@ transition:transform .45s cubic-bezier(.2,.9,.2,1);z-index:60;max-width:90vw;tex
 .auth.show{display:flex}.acard{width:100%;max-width:400px;padding:28px 22px;animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
 .acard h2{font-size:28px;letter-spacing:-.03em}.acard .sub{color:var(--mute);margin-bottom:18px}.err{color:var(--out);font-size:13px;min-height:20px;margin-bottom:6px}
 .qr{background:#fff;padding:16px;border-radius:22px;width:fit-content;margin:4px auto 16px}
+.or{text-align:center;color:var(--mute);font-size:13px;margin:16px 0 12px}#gbtn{display:flex;justify-content:center;min-height:44px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
 button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-offset:2px}
 </style>
@@ -135,6 +137,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
   <div class="f"><label>Email</label><input id="ae" type="email" autocomplete="email"></div>
   <div class="f"><label>Password</label><input id="ap" type="password" autocomplete="current-password"></div>
   <p class="err" id="aErr"></p><button class="btn" id="aBtn" data-act="auth">Log in</button>
+  <div id="gwrap" style="display:none"><div class="or">or</div><div id="gbtn"></div></div>
 </div></div>
 
 <div class="app">
@@ -171,6 +174,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
 <script>
 /* Paste your Apps Script Web App /exec URL here. Leave empty to run in local-only mode. */
 const API_URL = 'https://script.google.com/macros/s/AKfycbxUuJcBC5bf0eqpshbPPtVtVmt8yjEQhX13hN2wHSOTV5UL1knYfK_DNZS_kWA48M_M/exec';
+/* Optional: OAuth Web client ID from Google Cloud Console, to enable "Continue with Google". Must match GOOGLE_CLIENT_ID in Code.js. */
+const GOOGLE_CLIENT_ID = '';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -337,7 +342,25 @@ function qrSheet(pid) {
 }
 /* ---------- accounts ---------- */
 let AM = 'login';
-function showAuth() { closeSheet(); $('#auth').classList.add('show'); }
+function showAuth() { closeSheet(); $('#auth').classList.add('show'); initGoogle(); }
+let gInit = false;
+function initGoogle() {
+  if (!GOOGLE_CLIENT_ID || gInit || !window.google || !google.accounts) return;
+  gInit = true; $('#gwrap').style.display = '';
+  google.accounts.id.initialize({client_id: GOOGLE_CLIENT_ID, callback: onGoogle});
+  google.accounts.id.renderButton($('#gbtn'), {type: 'standard', shape: 'pill', size: 'large', width: 300, text: 'continue_with', theme: document.documentElement.dataset.theme === 'dark' ? 'filled_black' : 'outline'});
+}
+window.addEventListener('load', () => { if ($('#auth').classList.contains('show')) initGoogle(); });
+async function onGoogle(r) {
+  $('#aErr').textContent = '';
+  try { const j = await call({action: 'google', credential: r.credential}); if (j.error) { $('#aErr').textContent = j.error; return; } finish(j); }
+  catch (e) { $('#aErr').textContent = 'Could not reach the server. Check your connection.'; }
+}
+function finish(j) {
+  if (localStorage.getItem('dues.email') !== j.me.email) { S = {people: [], entries: [], payments: []}; store(); }
+  localStorage.setItem('dues.token', j.token); setMe(j.me); $('#ap').value = '';
+  $('#auth').classList.remove('show'); render(); load();
+}
 function authMode(m) {
   AM = m; document.querySelectorAll('#auth .seg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
   $('#aName').style.display = m === 'signup' ? '' : 'none'; $('#aBtn').textContent = m === 'signup' ? 'Create account' : 'Log in';
@@ -349,9 +372,7 @@ async function doAuth() {
   try {
     const j = await call({action: AM, email: $('#ae').value, password: $('#ap').value, name: $('#an').value});
     if (j.error) { $('#aErr').textContent = j.error; return; }
-    if (localStorage.getItem('dues.email') !== j.me.email) { S = {people: [], entries: [], payments: []}; store(); }
-    localStorage.setItem('dues.token', j.token); setMe(j.me); $('#ap').value = '';
-    $('#auth').classList.remove('show'); render(); load();
+    finish(j);
   } catch (e) { $('#aErr').textContent = 'Could not reach the server. Check your connection.'; }
   finally { b.disabled = false; }
 }
