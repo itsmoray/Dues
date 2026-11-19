@@ -180,6 +180,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
   <button class="over" id="over" data-act="over"></button>
   <div class="sec"><h2>People</h2><span id="cnt"></span></div>
   <input id="q" class="srch" placeholder="Search people, reasons or amounts" autocomplete="off">
+  <div class="chips" id="grps" style="margin-bottom:12px"></div>
   <div id="list"></div>
 </div>
 
@@ -279,9 +280,11 @@ function render() {
   $('#netLbl').textContent = tot === 0 ? 'All clear' : net > 0 ? 'You are owed' : net < 0 ? 'You owe' : 'Even';
   countUp($('#net'), Math.abs(net)); countUp($('#inT'), inT); countUp($('#outT'), outT);
 
-  const q = ($('#q').value || '').trim().toLowerCase(), match = p => !q || p.name.toLowerCase().includes(q) || S.entries.some(e => e.personId === p.id && (String(e.reason).toLowerCase().includes(q) || String(e.amount).includes(q)));
+  const gs = [...new Set(S.people.map(p => p.grp).filter(Boolean))]; if (G && !gs.includes(G)) G = '';
+  $('#grps').innerHTML = gs.length ? ['All', ...gs].map(g => `<button class="chip ${(g === 'All' ? !G : g === G) ? 'on' : ''}" data-act="grp" data-g="${esc(g)}">${esc(g)}</button>`).join('') : '';
+  const q = ($('#q').value || '').trim().toLowerCase(), match = p => (!G || (p.grp || '') === G) && (!q || p.name.toLowerCase().includes(q) || S.entries.some(e => e.personId === p.id && (String(e.reason).toLowerCase().includes(q) || String(e.amount).includes(q))));
   const ppl = S.people.map(p => ({p, b: bal(p.id)})).sort((x, y) => (!!y.b - !!x.b) || Math.abs(y.b) - Math.abs(x.b)).filter(x => match(x.p));
-  $('#cnt').textContent = ppl.length ? `${ppl.filter(x => x.b).length} open` : '';
+  $('#cnt').textContent = ppl.length ? `${ppl.filter(x => x.b).length} open` + (G ? (() => { const n = ppl.reduce((t, x) => t + x.b, 0); return ' · ' + (n >= 0 ? 'owed ' : 'you owe ') + fmt(Math.abs(n)); })() : '') : '';
   $('#list').innerHTML = ppl.length ? ppl.map(({p, b}, i) => {
     const o = openOf(p.id)[0];
     return `<div class="rw"><span class="h hl">Remind</span><span class="h hr">Settle</span><button class="row ${b ? '' : 'settled'} ${first ? 'go' : ''}" style="--i:${i}" data-act="person" data-id="${p.id}">
@@ -321,12 +324,13 @@ function addSheet(pre) {
   <div class="f"><label id="whoL">Split with</label><div class="chips" id="chips"></div></div>
   <div id="newp" style="display:none" class="two f"><input id="npn" placeholder="Name"><input id="npp" inputmode="tel" placeholder="WhatsApp number"></div>
   <div id="cust"></div><div class="tog" id="cuT" data-act="cust"><span>Custom amount per person</span><i class="sw" id="cuS"></i></div>
+  <div class="tog" id="rcT"><span id="rcL">Attach receipt (optional)</span><button class="lnk" style="margin:0" data-act="rcpick">Choose photo</button></div><input type="file" id="rcF" accept="image/*" style="display:none">
   <div class="tog" id="tsT" data-act="tsave"><span>Save as template</span><i class="sw" id="tsS"></i></div>
   <div class="tog" id="rpT" data-act="rep"><span id="rpL">Repeat: off</span><i class="sw" id="rpS"></i></div>
   <div class="tog" id="meT" data-act="me"><span>Include me in the split</span><i class="sw on" id="meS"></i></div>
   <p class="hint" id="prev"></p>
   <button class="btn" data-act="save">Save entry</button>`);
-  upd(); $('#amt').addEventListener('input', upd);
+  upd(); $('#amt').addEventListener('input', upd); $('#rcF').addEventListener('change', pickReceipt);
 }
 function upd() {
   document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === A.mode));
@@ -345,17 +349,19 @@ function upd() {
   const n = A.sel.size + (A.newp ? 1 : 0), amt = parseFloat($('#amt').value);
   $('#prev').textContent = sp && !A.custom && amt > 0 && n ? `${fmt(Math.round(amt / (n + (A.me ? 1 : 0)) * 100) / 100)} each, ${n} ${n === 1 ? 'person owes' : 'people owe'} you` : '';
 }
-function saveAdd() {
+async function saveAdd() {
   const sp = A.mode === 'split', cu = sp && A.custom, reason = $('#reason').value.trim() || 'Untitled', date = $('#date').value || today();
   const amt = parseFloat($('#amt').value), nm = A.newp ? $('#npn').value.trim() : '';
   if (!cu && !(amt > 0)) return toast('Enter an amount');
   if (A.newp && !nm) return toast('Enter the new person’s name');
   const ids = [...A.sel]; if (!ids.length && !nm) return toast('Pick at least one person');
   if (cu && [...ids, ...(nm ? ['new'] : [])].some(k => !(parseFloat(A.cs[k]) > 0))) return toast('Enter an amount for everyone');
+  let rid = '';
+  if (A.rcData && API_URL) { toast('Uploading receipt…'); try { await flush(); const u = await call({action: 'upload', data: A.rcData}); if (u.error) return toast(u.error); rid = u.id; } catch (e) { return toast('Could not upload the receipt. Check your connection.'); } }
   if (nm) { const p = {id: uid(), name: nm, phone: $('#npp').value.trim(), owner: 'me', created: today()}; put('people', p); ids.push(p.id); A.cs[p.id] = A.cs.new; }
   const share = sp && !cu ? Math.round(amt / (ids.length + (A.me ? 1 : 0)) * 100) / 100 : amt;
   ids.forEach(id => { const amount = cu ? parseFloat(A.cs[id]) : share, dir = sp ? 'lent' : A.mode;
-    put('entries', {id: uid(), personId: id, dir, amount, reason, date, owner: 'me'});
+    put('entries', {id: uid(), personId: id, dir, amount, reason, date, owner: 'me', receipt: rid});
     if (A.rep) put('recurring', {id: uid(), personId: id, dir, amount, reason, every: A.rep, next: addP(date, A.rep), owner: 'me'}); });
   if (sp && A.tsave) put('templates', {id: uid(), name: reason, people: ids.join(','), reason, owner: 'me'});
   closeSheet(); render(); toast(cu ? 'Split saved' : sp ? `Split saved. ${fmt(share)} each` : 'Entry saved'); navigator.vibrate && navigator.vibrate(12);
@@ -367,9 +373,9 @@ function personSheet(pid) {
   const card = e => { const l = leftOf(e), paid = paidOf(e);
     return `<div class="en ${l ? '' : 'done'}"><div class="top"><div><b>${esc(e.reason)}</b><div class="m">${l ? agePill(e.date) : ''}${e.dir === 'lent' ? 'They owe you' : 'You owe them'} · ${e.date}</div></div>
       <div style="text-align:right"><b class="${e.dir === 'lent' ? 'pos' : 'neg'}">${l ? fmt(l) : 'Settled'}</b>${paid && l ? `<div class="m">of ${fmt(e.amount)}</div>` : ''}</div></div>
-      ${l ? `<div class="ac"><button data-act="pay" data-id="${e.id}">Record payment</button><button data-act="edit" data-id="${e.id}">Edit</button><button class="x" data-act="delen" data-id="${e.id}">Delete</button></div>
+      ${l ? `<div class="ac"><button data-act="pay" data-id="${e.id}">Record payment</button>${e.receipt ? `<button data-act="rcv" data-id="${e.id}">Receipt</button>` : ''}<button data-act="edit" data-id="${e.id}">Edit</button><button class="x" data-act="delen" data-id="${e.id}">Delete</button></div>
       <div class="pay" id="pay-${e.id}"><input inputmode="decimal" value="${l}"><button class="btn sm" data-act="paysave" data-id="${e.id}">Save</button></div>`
-      : `<div class="ac"><button data-act="edit" data-id="${e.id}">Edit</button><button class="x" data-act="delen" data-id="${e.id}">Delete</button></div>`}</div>`; };
+      : `<div class="ac">${e.receipt ? `<button data-act="rcv" data-id="${e.id}">Receipt</button>` : ''}<button data-act="edit" data-id="${e.id}">Edit</button><button class="x" data-act="delen" data-id="${e.id}">Delete</button></div>`}</div>`; };
   sheet(`<div class="ph">${avatar(p)}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="big ${b > 0 ? 'pos' : b < 0 ? 'neg' : 'zero'}">${b > 0 ? fmt(b) + ' owes you' : b < 0 ? 'You owe ' + fmt(-b) : 'All settled'}</div></div></div>
   <div class="acts">${b > 0 ? `<button class="btn" data-act="remind" data-id="${pid}">Send reminder</button>` : ''}${b > 0 ? `<button class="btn ghost" data-act="qr" data-id="${pid}">Show QR</button>` : ''}<button class="btn ghost" data-act="addfor" data-id="${pid}">Add entry</button><button class="btn ghost" data-act="share" data-id="${pid}">Share link</button><button class="btn ghost" data-act="stmt" data-id="${pid}">Statement</button>${both ? `<button class="btn ghost" data-act="settle" data-id="${pid}">Settle up</button>` : ''}</div>
   ${(S.recurring || []).filter(r => r.personId === pid).map(r => `<div class="en"><div class="top"><div><b>${esc(r.reason)}</b><div class="m">Repeats ${r.every} · next ${r.next}</div></div><b>${fmt(r.amount)}</b></div><div class="ac"><button class="x" data-act="stoprec" data-id="${r.id}">Stop repeating</button></div></div>`).join('')}${open.map(card).join('')}${done.length ? `<div class="sec" style="margin:18px 4px 10px"><h2>Settled</h2></div>${done.map(card).join('')}` : ''}
@@ -389,11 +395,18 @@ const upiLink = t => { const id = localStorage.getItem('dues.upi'); if (!id) ret
   const q = `pa=${encodeURIComponent(id)}&pn=${encodeURIComponent(localStorage.getItem('dues.name') || 'Dues')}&am=${t}&cu=INR&tn=Dues`;
   return {raw: 'upi://pay?' + q, web: location.origin + location.pathname.replace(/[^/]*$/, '') + 'pay.html?' + q}; };
 const upi = t => { const l = upiLink(t); return l ? `\n\nPay by UPI: ${localStorage.getItem('dues.upi')}\nOpen to pay: ${l.web}` : ''; };
+function upiBtns(raw) {
+  const qs = raw.split('?')[1], ua = navigator.userAgent, and = /Android/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua);
+  const a = and ? [['Google Pay', 'com.google.android.apps.nbu.paisa.user'], ['PhonePe', 'com.phonepe.app'], ['Paytm', 'net.one97.paytm']].map(([n, p]) => ['Pay with ' + n, `intent://pay?${qs}#Intent;scheme=upi;package=${p};end`])
+    : ios ? [['Pay with Google Pay', 'tez://upi/pay?' + qs], ['Pay with PhonePe', 'phonepe://pay?' + qs], ['Pay with Paytm', 'paytmmp://pay?' + qs]] : [];
+  a.push(['Choose another UPI app', raw]);
+  return a.map(([n, h]) => `<a class="btn" style="display:block;text-align:center;text-decoration:none;margin-top:10px" href="${h}">${n}</a>`).join('');
+}
 function qrSheet(pid) {
   const p = S.people.find(x => x.id === pid), b = bal(pid), l = upiLink(b);
   if (!l) return toast('Add your UPI ID in Settings first');
   sheet(`<h3>Scan to pay</h3><p class="hint" style="margin-top:-6px">${esc(p.name)} pays ${fmt(b)} to ${esc(localStorage.getItem('dues.upi'))}</p><div id="qr" class="qr"></div>
-  <a class="btn" style="display:block;text-align:center;text-decoration:none" href="${l.raw}">Open in UPI app</a>`);
+  ${upiBtns(l.raw)}`);
   if (window.QRCode) new QRCode($('#qr'), {text: l.raw, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M}); else $('#qr').textContent = 'QR needs an internet connection';
 }
 /* ---------- accounts ---------- */
@@ -439,7 +452,7 @@ async function doAuth() {
 }
 function setMe(m) {
   if (!m) return;
-  localStorage.setItem('dues.email', m.email); localStorage.setItem('dues.name', m.name || ''); localStorage.setItem('dues.upi', m.upi || ''); greet();
+  localStorage.setItem('dues.email', m.email); localStorage.setItem('dues.name', m.name || ''); localStorage.setItem('dues.upi', m.upi || ''); localStorage.setItem('dues.digest', m.digest ? '1' : ''); greet();
 }
 function logout() {
   call({action: 'logout'}).catch(() => {});
@@ -457,6 +470,27 @@ function fx() {
   const x = c.getContext('2d'), P = Array.from({length: 70}, () => ({x: innerWidth / 2, y: innerHeight * .62, vx: (Math.random() - .5) * 12, vy: -Math.random() * 14 - 4, r: Math.random() * 5 + 3, h: Math.random() * 360, a: 1}));
   (function f() { x.clearRect(0, 0, c.width, c.height); P.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .45; p.a -= .012; x.globalAlpha = Math.max(p.a, 0); x.fillStyle = `hsl(${p.h} 90% 60%)`; x.fillRect(p.x, p.y, p.r, p.r * 1.6); }); P[0].a > 0 ? requestAnimationFrame(f) : c.remove(); })();
 }
+let G = '';
+function pickReceipt(e) {
+  const f = e.target.files[0]; if (!f) return; if (!API_URL) return toast('Receipts need your Google Sheet connected');
+  const img = new Image();
+  img.onload = () => { const k = Math.min(1, 1000 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = img.width * k; c.height = img.height * k;
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); A.rcData = c.toDataURL('image/jpeg', .7); $('#rcL').textContent = 'Receipt attached ✓'; URL.revokeObjectURL(img.src); };
+  img.src = URL.createObjectURL(f);
+}
+async function viewReceipt(id) {
+  const e = S.entries.find(x => x.id === id); sheet('<h3>Receipt</h3><p class="hint" id="rcm">Loading…</p><div id="rci"></div>');
+  try { const j = await call({action: 'receipt', entryId: id}); if (j.error) { $('#rcm').textContent = j.error; return; }
+    $('#rcm').textContent = e.reason; $('#rci').innerHTML = `<img src="${j.data}" alt="Receipt" style="width:100%;border-radius:16px">`; }
+  catch (x) { $('#rcm').textContent = 'Could not load. Check your connection.'; }
+}
+async function showLog() {
+  sheet('<h3>Activity</h3><p class="hint" id="lgm">Loading…</p><div id="lg"></div>');
+  try { await flush(); const j = await call({action: 'log'}); if (j.error) { $('#lgm').textContent = j.error; return; }
+    $('#lgm').textContent = j.log.length ? '' : 'Nothing yet.';
+    $('#lg').innerHTML = j.log.map(r => `<div class="en"><div class="top"><b>${esc(r.detail || r.what)}</b><small style="color:var(--mute)">${esc(r.action)}</small></div><div class="m">${new Date(r.time).toLocaleString('en-IN', {day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'})} · ${esc(r.what)}</div></div>`).join(''); }
+  catch (e) { $('#lgm').textContent = 'Could not load. Check your connection.'; }
+}
 function editSheet(id) {
   const e = S.entries.find(x => x.id === id);
   sheet(`<h3>Edit entry</h3><div class="f"><label>Amount</label><input id="ea" class="amt-in" inputmode="decimal" value="${e.amount}"></div>
@@ -466,6 +500,7 @@ function editSheet(id) {
 function editP(id) {
   const p = S.people.find(x => x.id === id);
   sheet(`<h3>Edit details</h3><div class="f"><label>Name</label><input id="pn" value="${esc(p.name)}"></div><div class="f"><label>WhatsApp number</label><input id="pp" inputmode="tel" value="${esc(p.phone || '')}"></div>
+  <div class="f"><label>Group (optional)</label><input id="pg" list="gl" value="${esc(p.grp || '')}" placeholder="Roommates, Trip, Office"><datalist id="gl">${[...new Set(S.people.map(x => x.grp).filter(Boolean))].map(g => `<option value="${esc(g)}">`).join('')}</datalist></div>
   <button class="btn" data-act="psave" data-id="${id}">Save</button><button class="btn ghost" style="margin-top:10px" data-act="unshare" data-id="${id}">Stop sharing view link</button>`);
 }
 async function shareLink(pid) {
@@ -541,6 +576,7 @@ function settings() {
   ${API_URL ? `<div class="f"><label>Signed in as</label><div class="tog" style="margin:0"><span>${esc(localStorage.getItem('dues.email') || '')}</span><button data-act="logout" style="color:var(--out);font-weight:700">Log out</button></div></div>` : ''}
   <div class="f"><label>Your name (shown on payment requests)</label><input id="nm" value="${esc(localStorage.getItem('dues.name') || '')}"></div><div class="f"><label>Your UPI ID</label><input id="upi" value="${esc(localStorage.getItem('dues.upi') || '')}" placeholder="name@bank"></div>
   <p class="hint">${API_URL ? 'Connected to Google Sheets.' : 'Local mode. Data stays on this device until you set API_URL in index.html.'}</p>
+  ${API_URL ? `<div class="tog" data-act="digest"><span>Daily email for overdue dues</span><i class="sw ${localStorage.getItem('dues.digest') ? 'on' : ''}"></i></div><button class="btn ghost" style="margin-bottom:10px" data-act="log">Activity log</button>` : ''}
   <button class="btn ghost" style="margin-bottom:10px" data-act="csv">Export all data (CSV)</button><button class="btn ghost" style="margin-bottom:10px" data-act="tourr">Replay quick tour</button>
   <button class="btn" data-act="savekey">Save</button>`);
 }
@@ -585,13 +621,19 @@ document.addEventListener('click', e => {
   else if (act === 'savekey') { const nm = $('#nm').value.trim(), up = $('#upi').value.trim(); localStorage.setItem('dues.name', nm); localStorage.setItem('dues.upi', up);
     sync({action: 'profile', name: nm, upi: up}); greet(); closeSheet(); toast('Saved'); }
   else if (act === 'qr') qrSheet(id);
+  else if (act === 'grp') { G = t.dataset.g === 'All' ? '' : t.dataset.g; render(); }
+  else if (act === 'rcpick') $('#rcF').click();
+  else if (act === 'rcv') viewReceipt(id);
+  else if (act === 'log') showLog();
+  else if (act === 'digest') { const on = !localStorage.getItem('dues.digest'); localStorage.setItem('dues.digest', on ? '1' : ''); t.querySelector('.sw').classList.toggle('on', on);
+    sync({action: 'profile', name: localStorage.getItem('dues.name') || '', upi: localStorage.getItem('dues.upi') || '', digest: on}); toast(on ? 'Daily email on' : 'Daily email off'); }
   else if (act === 'forgot') authMode('forgot');
   else if (act === 'edit') editSheet(id);
   else if (act === 'editsave') { const en = S.entries.find(x => x.id === id), a = parseFloat($('#ea').value);
     if (!(a > 0)) return toast('Enter an amount'); if (a < paidOf(en) - .001) return toast('Already paid ' + fmt(paidOf(en)) + '. Amount cannot be lower.');
     put('entries', {...en, amount: a, reason: $('#er').value.trim() || en.reason, date: $('#ed').value || en.date}); personSheet(en.personId); render(); toast('Updated'); }
   else if (act === 'editp') editP(id);
-  else if (act === 'psave') { const p = S.people.find(x => x.id === id); put('people', {...p, name: $('#pn').value.trim() || p.name, phone: $('#pp').value.trim()}); personSheet(id); render(); }
+  else if (act === 'psave') { const p = S.people.find(x => x.id === id); put('people', {...p, name: $('#pn').value.trim() || p.name, phone: $('#pp').value.trim(), grp: $('#pg').value.trim()}); personSheet(id); render(); }
   else if (act === 'unshare') { sync({action: 'unshare', personId: id}); toast('View link disabled'); }
   else if (act === 'share') shareLink(id);
   else if (act === 'stmt') statement(id);
