@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Dues</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2F3FB;--solid:#fff;--ink:#12142B;--mute:#6A6E8F;--line:rgba(18,20,43,.1);--a1:#6D5BFF;--a2:#14BDE0;--out:#E8416A}
+@media(prefers-color-scheme:dark){:root{--bg:#080B1A;--solid:#12162D;--ink:#EEF0FF;--mute:#8D93B8;--line:rgba(255,255,255,.1);--out:#FF6F91}}
+*{box-sizing:border-box;margin:0}body{min-height:100vh;display:grid;place-items:center;padding:20px;background:var(--bg);color:var(--ink);font:600 15px Manrope,system-ui,sans-serif}
+.c{width:100%;max-width:400px;background:var(--solid);border:1px solid var(--line);border-radius:28px;padding:26px 22px;text-align:center;box-shadow:0 20px 50px -24px rgba(60,50,160,.4)}
+small{color:var(--mute)}h1{font:700 40px Sora,sans-serif;letter-spacing:-.03em;margin:6px 0 4px}
+.l{margin:18px 0;text-align:left}.r{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+a.b,button{display:block;width:100%;padding:16px;border-radius:16px;border:0;font:700 16px inherit;color:#fff;text-decoration:none;background:linear-gradient(135deg,var(--a1),var(--a2));margin-top:10px;cursor:pointer}
+button{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+</style></head><body><div class="c" id="c"><small>Loading…</small></div>
+<script>
+const q=new URLSearchParams(location.search),api=q.get('a')||'',t=q.get('t')||'',c=document.getElementById('c');
+const fmt=n=>'₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:Number.isInteger(+n)?0:2,maximumFractionDigits:2});
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const days=d=>Math.max(0,Math.round((new Date(new Date().toDateString())-new Date(d+'T00:00:00'))/864e5));
+if(!/^https:\/\/script\.google\.com\//.test(api)||!t){c.textContent='This link is not valid.'}
+else fetch(api,{method:'POST',body:JSON.stringify({action:'view',token:t})}).then(r=>r.json()).then(j=>{
+ if(j.error){c.textContent=j.error;return}
+ const owe=j.total>0;
+ c.innerHTML=`<small>${esc(j.from)} shared this with ${esc(j.person)}</small><h1>${j.total===0?'All settled':fmt(Math.abs(j.total))}</h1><small>${owe?'Currently open':j.total<0?esc(j.from)+' owes you':''}</small>
+ <div class="l">${j.items.map(i=>`<div class="r"><div><b>${esc(i.reason)}</b><br><small>${esc(i.date)} · day ${days(i.date)}${i.dir!=='lent'?' · owed to you':''}</small></div><b>${fmt(i.left)}</b></div>`).join('')}</div>
+ ${owe&&j.upi?`<a class="b" href="upi://pay?pa=${encodeURIComponent(j.upi)}&pn=${encodeURIComponent(j.from)}&am=${j.total}&cu=INR&tn=Dues">Pay ${fmt(j.total)}</a><button id="cp">Copy UPI ID</button>`:''}`;
+ const cp=document.getElementById('cp');if(cp)cp.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(j.upi);cp.textContent='Copied'};
+}).catch(()=>{c.textContent='Could not load. Check your connection.'});
+</script></body></html>
