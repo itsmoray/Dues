@@ -69,10 +69,11 @@ color:#fff;font-weight:700;background:linear-gradient(135deg,var(--a1),var(--a2)
 transition:transform .25s,box-shadow .25s;z-index:5}
 .fab:active{transform:translateX(-50%) scale(.94)}.fab svg{width:18px;height:18px;stroke:#fff;stroke-width:2.6;fill:none;stroke-linecap:round}
 .scrim{position:fixed;inset:0;background:rgba(5,7,20,.55);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .35s;z-index:20}
-.sheet{position:fixed;left:0;right:0;bottom:0;margin:auto;max-width:520px;max-height:92vh;overflow:auto;background:var(--solid);border:1px solid var(--line);
+.sheet{position:fixed;left:0;right:0;bottom:0;margin:auto;max-width:520px;max-height:90vh;overflow:auto;overscroll-behavior:contain;background:var(--solid);border:1px solid var(--line);
 border-radius:30px 30px 0 0;padding:10px 20px calc(24px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .5s cubic-bezier(.2,.9,.2,1);z-index:21}
 body.open .scrim{opacity:1;pointer-events:auto}body.open .sheet{transform:none}
-.grab{display:block;width:42px;height:5px;border-radius:9px;background:var(--line);margin:4px auto 16px}
+.grab{display:block;width:42px;height:5px;border-radius:9px;background:var(--line);margin:0 auto}.gz{padding:8px 0 14px;touch-action:none;cursor:grab}
+.cl{position:sticky;top:0;float:right;z-index:3;width:36px;height:36px;margin:-34px 0 0 8px;border-radius:50%;background:var(--bg);border:1px solid var(--line);font-size:15px;color:var(--mute)}
 .sheet h3{font-size:20px;margin-bottom:14px}
 .seg{display:flex;gap:4px;padding:4px;background:var(--bg);border-radius:16px;margin-bottom:16px}
 .seg button{flex:1;padding:10px 6px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--mute);transition:all .25s}
@@ -102,8 +103,8 @@ input:focus{border-color:var(--a1);box-shadow:0 0 0 4px var(--g1)}
 .en .m{color:var(--mute);font-size:13px;margin-top:3px}
 .en .ac{display:flex;gap:14px;margin-top:10px;font-size:13.5px}.en .ac button{color:var(--a1);font-weight:700}.en .ac .x{color:var(--out);margin-left:auto}
 .pay{display:none;gap:8px;margin-top:10px}.pay.show{display:flex}.en.done{opacity:.55}
-.toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-140%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:99px;font-size:14px;
-transition:transform .45s cubic-bezier(.2,.9,.2,1);z-index:60;max-width:90vw;text-align:center}.toast.show{transform:translate(-50%,0)}
+.toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-250%);opacity:0;visibility:hidden;pointer-events:none;background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:99px;font-size:14px;
+transition:transform .45s cubic-bezier(.2,.9,.2,1),opacity .3s,visibility .45s;z-index:60;max-width:90vw;text-align:center}.toast.show{transform:translate(-50%,0);opacity:1;visibility:visible}
 #splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:opacity .7s,transform .7s}
 #splash.gone{opacity:0;transform:scale(1.06);pointer-events:none}
 #splash svg{width:120px;height:120px;margin-bottom:14px;filter:drop-shadow(0 0 18px var(--g1))}
@@ -187,7 +188,7 @@ const GOOGLE_CLIENT_ID = '120457271963-cvbfto7ktnph5d160fag45mc7l1akmg3.apps.goo
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid = () => 'i' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
-const fmt = n => '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits: 2});
+const fmt = n => '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits: Number.isInteger(+n) ? 0 : 2, maximumFractionDigits: 2});
 const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 const days = d => Math.max(0, Math.round((new Date(new Date().toDateString()) - new Date(d + 'T00:00:00')) / 864e5));
 const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -201,23 +202,40 @@ const tok = () => localStorage.getItem('dues.token') || '';
 function call(body) {
   return fetch(API_URL, {method: 'POST', body: JSON.stringify({token: tok(), ...body})}).then(r => r.json());
 }
-function sync(body) {
-  if (!API_URL || !tok()) return;
-  call(body).then(j => { if (j.error) j.error === 'auth' ? showAuth() : toast(j.error); })
-    .catch(() => toast('Offline. Changes are saved on this device.'));
+/* Every write goes through a saved queue, so nothing is lost when offline and a refresh can never overwrite unsent changes. */
+let Q = JSON.parse(localStorage.getItem('dues.q') || '[]'), busy = false, ver = 0;
+const saveQ = () => localStorage.setItem('dues.q', JSON.stringify(Q));
+function sync(body) { if (!API_URL || !tok()) return; Q.push(body); saveQ(); flush(); }
+async function flush() {
+  if (busy) return; busy = true;
+  try {
+    while (Q.length) {
+      const j = await call(Q[0]);
+      if (j.error === 'auth') { showAuth(); break; }
+      if (j.error) toast(j.error);
+      Q.shift(); saveQ();
+    }
+  } catch (e) { toast('Offline. Changes will sync when you reconnect.'); }
+  busy = false;
 }
+addEventListener('online', () => load());
+const nd = v => { v = String(v || ''); if (/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0, 10); const d = new Date(v); return isNaN(d) ? today() : new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+function fixDates() { S.entries.forEach(e => e.date = nd(e.date)); S.payments.forEach(p => p.date = nd(p.date)); (S.recurring || []).forEach(r => r.next = nd(r.next)); }
 function put(sheet, row) {
   const a = S[sheet] || (S[sheet] = []), i = a.findIndex(x => x.id === row.id);
   i < 0 ? a.push(row) : a[i] = row;
-  store(); sync({action: 'save', sheet, row});
+  ver++; store(); sync({action: 'save', sheet, row});
 }
-function del(sheet, id) { S[sheet] = (S[sheet] || []).filter(x => x.id !== id); store(); sync({action: 'remove', sheet, id}); }
+function del(sheet, id) { S[sheet] = (S[sheet] || []).filter(x => x.id !== id); ver++; store(); sync({action: 'remove', sheet, id}); }
 async function load() {
   if (!API_URL || !tok()) return;
+  await flush(); if (Q.length) return;
+  const v0 = ver;
   try {
     const j = await call({action: 'all'});
     if (j.error) return j.error === 'auth' ? showAuth() : toast(j.error);
-    S = {people: j.people, entries: j.entries, payments: j.payments, recurring: j.recurring || []}; store(); setMe(j.me); render(); runRecurring();
+    if (ver !== v0 || Q.length || busy) return setTimeout(load, 1200);   // something changed while loading: fetch again
+    S = {people: j.people, entries: j.entries, payments: j.payments, recurring: j.recurring || []}; fixDates(); store(); setMe(j.me); render(); runRecurring();
   } catch (e) { toast('Offline. Showing saved data.'); }
 }
 
@@ -271,7 +289,7 @@ function render() {
 }
 
 /* ---------- sheets ---------- */
-function sheet(html) { $('#sheet').innerHTML = '<i class="grab"></i>' + html; document.body.classList.add('open'); }
+function sheet(html) { $('#sheet').innerHTML = '<div class="gz"><i class="grab"></i></div><button class="cl" data-act="close" aria-label="Close">✕</button>' + html; document.body.classList.add('open'); }
 function closeSheet() { document.body.classList.remove('open'); }
 let T;
 function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(T); T = setTimeout(() => t.classList.remove('show'), 2600); }
@@ -399,7 +417,7 @@ function setMe(m) {
 }
 function logout() {
   call({action: 'logout'}).catch(() => {});
-  ['token', 'data', 'name', 'upi', 'email'].forEach(k => localStorage.removeItem('dues.' + k));
+  ['token', 'data', 'name', 'upi', 'email', 'q'].forEach(k => localStorage.removeItem('dues.' + k)); Q = [];
   S = {people: [], entries: [], payments: []}; render(); greet(); showAuth();
 }
 function settleUp(pid) {
@@ -506,6 +524,13 @@ document.addEventListener('click', e => {
 document.addEventListener('input', e => { if (e.target.classList.contains('cs')) A.cs[e.target.dataset.pid] = e.target.value; });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); if (e.key === 'Enter' && $('#auth').classList.contains('show')) doAuth(); });
 
+/* drag the handle down to close a sheet */
+let gz = null;
+$('#sheet').addEventListener('pointerdown', e => { if (e.target.closest('.gz')) gz = {y: e.clientY, dy: 0}; });
+addEventListener('pointermove', e => { if (!gz) return; gz.dy = Math.max(0, e.clientY - gz.y); const s = $('#sheet'); s.style.transition = 'none'; s.style.transform = `translateY(${gz.dy}px)`; });
+const gzEnd = () => { if (!gz) return; const s = $('#sheet'), d = gz.dy; gz = null; s.style.transition = ''; s.style.transform = ''; if (d > 90) closeSheet(); };
+addEventListener('pointerup', gzEnd); addEventListener('pointercancel', gzEnd);
+
 /* swipe on person rows: right = remind, left = settle */
 let sw = null, swiped = false;
 $('#list').addEventListener('pointerdown', e => { const r = e.target.closest('.row'); if (r) sw = {r, x: e.clientX, dx: 0, on: false}; });
@@ -520,7 +545,7 @@ const h = new Date().getHours();
 const greet = () => { const n = (localStorage.getItem('dues.name') || '').split(' ')[0]; $('#greet').textContent = (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + (n ? ', ' + n : ''); };
 greet();
 $('#date').textContent = new Date().toLocaleDateString('en-IN', {weekday: 'long', day: 'numeric', month: 'long'});
-setTimeout(() => { render(); if (API_URL && !tok()) showAuth(); if (!API_URL) runRecurring(); }, 1700);
+setTimeout(() => { fixDates(); render(); if (API_URL && !tok()) showAuth(); if (!API_URL) runRecurring(); }, 1700);
 setTimeout(() => { $('#splash').classList.add('gone'); setTimeout(() => $('#splash').remove(), 800); }, 2000);
 load();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
