@@ -95,7 +95,7 @@ input:focus{border-color:var(--a1);box-shadow:0 0 0 4px var(--g1)}
 .btn:active{transform:scale(.97)}.btn.ghost{background:var(--bg);color:var(--ink);box-shadow:none;border:1px solid var(--line)}
 .btn.danger{color:var(--out)}.btn.sm{width:auto;padding:11px 18px;font-size:14px}
 .ph{display:flex;gap:14px;align-items:center;margin-bottom:16px}.ph .big{font-size:24px;font-weight:700}
-.acts{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}.acts .btn{flex:1}
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}.acts .btn{flex:1 1 42%}
 .en{padding:14px;border-radius:18px;background:var(--bg);border:1px solid var(--line);margin-bottom:10px}
 .en .top{display:flex;justify-content:space-between;gap:10px}.en b{font-weight:700}
 .pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:700;background:var(--line);color:var(--mute);margin-right:6px}
@@ -104,7 +104,7 @@ input:focus{border-color:var(--a1);box-shadow:0 0 0 4px var(--g1)}
 .en .ac{display:flex;gap:14px;margin-top:10px;font-size:13.5px}.en .ac button{color:var(--a1);font-weight:700}.en .ac .x{color:var(--out);margin-left:auto}
 .pay{display:none;gap:8px;margin-top:10px}.pay.show{display:flex}.en.done{opacity:.55}
 .toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-250%);opacity:0;visibility:hidden;pointer-events:none;background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:99px;font-size:14px;
-transition:transform .45s cubic-bezier(.2,.9,.2,1),opacity .3s,visibility .45s;z-index:60;max-width:90vw;text-align:center}.toast.show{transform:translate(-50%,0);opacity:1;visibility:visible}
+transition:transform .45s cubic-bezier(.2,.9,.2,1),opacity .3s,visibility .45s;z-index:60;max-width:90vw;text-align:center}.toast.show{transform:translate(-50%,0);opacity:1;visibility:visible;pointer-events:auto}.toast button{color:var(--a2);font-weight:700;margin-left:12px}
 #splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:opacity .7s,transform .7s}
 #splash.gone{opacity:0;transform:scale(1.06);pointer-events:none}
 #splash svg{width:120px;height:120px;margin-bottom:14px;filter:drop-shadow(0 0 18px var(--g1))}
@@ -127,6 +127,11 @@ transition:transform .45s cubic-bezier(.2,.9,.2,1),opacity .3s,visibility .45s;z
 .spark{margin-top:14px}.spark small{color:var(--mute);font-size:12.5px;display:flex;justify-content:space-between}.spark svg{width:100%;height:56px;display:block;margin-top:6px}
 .mn{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.mn button{width:40px;height:40px;border-radius:12px;background:var(--bg);font-size:20px}.mn button:disabled{opacity:.3}.mn b{font:700 17px Sora}
 .sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.lnk{color:var(--a1);font-weight:700;font-size:13.5px;margin:-4px 0 10px}
+.tour{position:fixed;inset:0;z-index:40;display:none;align-items:flex-end;justify-content:center;padding:20px;background:rgba(5,7,20,.6);backdrop-filter:blur(6px)}.tour.show{display:flex}
+.tcard{width:100%;max-width:420px;padding:24px;background:var(--solid);animation:rise .5s both}.tcard p{color:var(--mute);margin:6px 0 18px}
+.dots{display:flex;gap:6px;margin-bottom:14px}.dots i{width:8px;height:8px;border-radius:9px;background:var(--line);transition:all .3s}.dots i.on{width:22px;background:var(--a1)}
+.srch{margin-bottom:12px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
 button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-offset:2px}
 </style>
@@ -142,8 +147,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
   <div class="seg"><button data-act="amode" data-m="login" class="on">Log in</button><button data-act="amode" data-m="signup">Sign up</button></div>
   <div class="f" id="aName" style="display:none"><label>Name</label><input id="an" autocomplete="name"></div>
   <div class="f"><label>Email</label><input id="ae" type="email" autocomplete="email"></div>
-  <div class="f"><label>Password</label><input id="ap" type="password" autocomplete="current-password"></div>
+  <div class="f" id="aPw"><label>Password</label><input id="ap" type="password" autocomplete="current-password"></div>
+  <div class="f" id="aCode" style="display:none"><label>6-digit code from your email</label><input id="ac" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></div>
+  <button class="lnk" id="aFg" data-act="forgot">Forgot password?</button>
   <p class="err" id="aErr"></p><button class="btn" id="aBtn" data-act="auth">Log in</button>
+  <button class="lnk" id="aBk" data-act="amode" data-m="login" style="display:none;margin:12px auto 0">Back to log in</button>
   <div id="gwrap" style="display:none"><div class="or">or</div><div id="gbtn"></div></div>
 </div></div>
 
@@ -171,12 +179,14 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
 
   <button class="over" id="over" data-act="over"></button>
   <div class="sec"><h2>People</h2><span id="cnt"></span></div>
+  <input id="q" class="srch" placeholder="Search people, reasons or amounts" autocomplete="off">
   <div id="list"></div>
 </div>
 
 <button class="fab" data-act="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add</button>
 <div class="scrim" data-act="close"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="tour" id="tour"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -194,7 +204,7 @@ const days = d => Math.max(0, Math.round((new Date(new Date().toDateString()) - 
 const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 let S = JSON.parse(localStorage.getItem('dues.data') || 'null') || {people: [], entries: [], payments: []};
-S.recurring = S.recurring || [];
+S.recurring = S.recurring || []; S.templates = S.templates || [];
 const store = () => localStorage.setItem('dues.data', JSON.stringify(S));
 const tok = () => localStorage.getItem('dues.token') || '';
 
@@ -235,7 +245,7 @@ async function load() {
     const j = await call({action: 'all'});
     if (j.error) return j.error === 'auth' ? showAuth() : toast(j.error);
     if (ver !== v0 || Q.length || busy) return setTimeout(load, 1200);   // something changed while loading: fetch again
-    S = {people: j.people, entries: j.entries, payments: j.payments, recurring: j.recurring || []}; fixDates(); store(); setMe(j.me); render(); runRecurring();
+    S = {people: j.people, entries: j.entries, payments: j.payments, recurring: j.recurring || [], templates: j.templates || []}; fixDates(); store(); setMe(j.me); render(); runRecurring();
   } catch (e) { toast('Offline. Showing saved data.'); }
 }
 
@@ -269,7 +279,8 @@ function render() {
   $('#netLbl').textContent = tot === 0 ? 'All clear' : net > 0 ? 'You are owed' : net < 0 ? 'You owe' : 'Even';
   countUp($('#net'), Math.abs(net)); countUp($('#inT'), inT); countUp($('#outT'), outT);
 
-  const ppl = S.people.map(p => ({p, b: bal(p.id)})).sort((x, y) => (!!y.b - !!x.b) || Math.abs(y.b) - Math.abs(x.b));
+  const q = ($('#q').value || '').trim().toLowerCase(), match = p => !q || p.name.toLowerCase().includes(q) || S.entries.some(e => e.personId === p.id && (String(e.reason).toLowerCase().includes(q) || String(e.amount).includes(q)));
+  const ppl = S.people.map(p => ({p, b: bal(p.id)})).sort((x, y) => (!!y.b - !!x.b) || Math.abs(y.b) - Math.abs(x.b)).filter(x => match(x.p));
   $('#cnt').textContent = ppl.length ? `${ppl.filter(x => x.b).length} open` : '';
   $('#list').innerHTML = ppl.length ? ppl.map(({p, b}, i) => {
     const o = openOf(p.id)[0];
@@ -292,19 +303,25 @@ function render() {
 function sheet(html) { $('#sheet').innerHTML = '<div class="gz"><i class="grab"></i></div><button class="cl" data-act="close" aria-label="Close">✕</button>' + html; document.body.classList.add('open'); }
 function closeSheet() { document.body.classList.remove('open'); }
 let T;
-function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(T); T = setTimeout(() => t.classList.remove('show'), 2600); }
+function toast(m, undo) {
+  const t = $('#toast'); t.innerHTML = esc(m) + (undo ? '<button id="undo">Undo</button>' : ''); t.classList.add('show'); clearTimeout(T);
+  if (undo) $('#undo').onclick = () => { undo(); t.classList.remove('show'); };
+  T = setTimeout(() => t.classList.remove('show'), undo ? 6000 : 2600);
+}
 
 let A = {mode: 'split', sel: new Set(), me: true, newp: false};
 function addSheet(pre) {
-  A = {mode: pre ? 'lent' : 'split', sel: new Set(pre ? [pre] : []), me: true, newp: false, custom: false, cs: {}, rep: ''};
+  A = {mode: pre ? 'lent' : 'split', sel: new Set(pre ? [pre] : []), me: true, newp: false, custom: false, cs: {}, rep: '', tsave: false};
   sheet(`<h3>New entry</h3>
   <div class="seg" id="modes"><button data-act="mode" data-m="split">Split a bill</button><button data-act="mode" data-m="lent">They owe me</button><button data-act="mode" data-m="borrowed">I owe them</button></div>
+  <div class="chips" id="tpl" style="margin-bottom:14px"></div>
   <div class="f" id="amtF"><label id="amtL">Total bill</label><input id="amt" class="amt-in" inputmode="decimal" placeholder="₹0" autocomplete="off"></div>
   <div class="f"><label>What is it for?</label><input id="reason" placeholder="Groceries, dinner, tickets" autocomplete="off"></div>
   <div class="f"><label>Date</label><input id="date" type="date" value="${today()}"></div>
   <div class="f"><label id="whoL">Split with</label><div class="chips" id="chips"></div></div>
   <div id="newp" style="display:none" class="two f"><input id="npn" placeholder="Name"><input id="npp" inputmode="tel" placeholder="WhatsApp number"></div>
   <div id="cust"></div><div class="tog" id="cuT" data-act="cust"><span>Custom amount per person</span><i class="sw" id="cuS"></i></div>
+  <div class="tog" id="tsT" data-act="tsave"><span>Save as template</span><i class="sw" id="tsS"></i></div>
   <div class="tog" id="rpT" data-act="rep"><span id="rpL">Repeat: off</span><i class="sw" id="rpS"></i></div>
   <div class="tog" id="meT" data-act="me"><span>Include me in the split</span><i class="sw on" id="meS"></i></div>
   <p class="hint" id="prev"></p>
@@ -317,6 +334,8 @@ function upd() {
   $('#amtL').textContent = sp ? 'Total bill' : 'Amount'; $('#whoL').textContent = sp ? 'Split with' : A.mode === 'lent' ? 'Who owes you' : 'Who you owe';
   $('#meT').style.display = sp && !A.custom ? '' : 'none'; $('#meS').classList.toggle('on', A.me);
   $('#cuT').style.display = sp ? '' : 'none'; $('#cuS').classList.toggle('on', A.custom && sp); $('#amtF').style.display = sp && A.custom ? 'none' : '';
+  $('#tsT').style.display = sp ? '' : 'none'; $('#tsS').classList.toggle('on', !!A.tsave);
+  $('#tpl').innerHTML = (S.templates || []).map(t => `<button class="chip" data-act="tpl" data-id="${t.id}">${esc(t.name)} <span data-act="tpldel" data-id="${t.id}" style="opacity:.5;margin-left:6px">✕</span></button>`).join('');
   $('#rpL').textContent = 'Repeat: ' + (A.rep || 'off'); $('#rpS').classList.toggle('on', !!A.rep);
   const nm = id => id === 'new' ? ($('#npn').value || 'New person') : (S.people.find(p => p.id === id) || {}).name;
   $('#cust').innerHTML = sp && A.custom ? [...A.sel, ...(A.newp ? ['new'] : [])].map(id => `<div class="crow"><span>${esc(nm(id))}</span><input class="cs" data-pid="${id}" inputmode="decimal" placeholder="₹0" value="${esc(A.cs[id] || '')}"></div>`).join('') : '';
@@ -338,6 +357,7 @@ function saveAdd() {
   ids.forEach(id => { const amount = cu ? parseFloat(A.cs[id]) : share, dir = sp ? 'lent' : A.mode;
     put('entries', {id: uid(), personId: id, dir, amount, reason, date, owner: 'me'});
     if (A.rep) put('recurring', {id: uid(), personId: id, dir, amount, reason, every: A.rep, next: addP(date, A.rep), owner: 'me'}); });
+  if (sp && A.tsave) put('templates', {id: uid(), name: reason, people: ids.join(','), reason, owner: 'me'});
   closeSheet(); render(); toast(cu ? 'Split saved' : sp ? `Split saved. ${fmt(share)} each` : 'Entry saved'); navigator.vibrate && navigator.vibrate(12);
 }
 
@@ -347,14 +367,15 @@ function personSheet(pid) {
   const card = e => { const l = leftOf(e), paid = paidOf(e);
     return `<div class="en ${l ? '' : 'done'}"><div class="top"><div><b>${esc(e.reason)}</b><div class="m">${l ? agePill(e.date) : ''}${e.dir === 'lent' ? 'They owe you' : 'You owe them'} · ${e.date}</div></div>
       <div style="text-align:right"><b class="${e.dir === 'lent' ? 'pos' : 'neg'}">${l ? fmt(l) : 'Settled'}</b>${paid && l ? `<div class="m">of ${fmt(e.amount)}</div>` : ''}</div></div>
-      ${l ? `<div class="ac"><button data-act="pay" data-id="${e.id}">Record payment</button><button class="x" data-act="delen" data-id="${e.id}">Delete</button></div>
+      ${l ? `<div class="ac"><button data-act="pay" data-id="${e.id}">Record payment</button><button data-act="edit" data-id="${e.id}">Edit</button><button class="x" data-act="delen" data-id="${e.id}">Delete</button></div>
       <div class="pay" id="pay-${e.id}"><input inputmode="decimal" value="${l}"><button class="btn sm" data-act="paysave" data-id="${e.id}">Save</button></div>`
-      : `<div class="ac"><button class="x" data-act="delen" data-id="${e.id}">Delete</button></div>`}</div>`; };
+      : `<div class="ac"><button data-act="edit" data-id="${e.id}">Edit</button><button class="x" data-act="delen" data-id="${e.id}">Delete</button></div>`}</div>`; };
   sheet(`<div class="ph">${avatar(p)}<div><h3 style="margin:0">${esc(p.name)}</h3><div class="big ${b > 0 ? 'pos' : b < 0 ? 'neg' : 'zero'}">${b > 0 ? fmt(b) + ' owes you' : b < 0 ? 'You owe ' + fmt(-b) : 'All settled'}</div></div></div>
-  <div class="acts">${b > 0 ? `<button class="btn" data-act="remind" data-id="${pid}">Send reminder</button>` : ''}${b > 0 ? `<button class="btn ghost" data-act="qr" data-id="${pid}">Show QR</button>` : ''}<button class="btn ghost" data-act="addfor" data-id="${pid}">Add entry</button>${both ? `<button class="btn ghost" data-act="settle" data-id="${pid}">Settle up</button>` : ''}</div>
+  <div class="acts">${b > 0 ? `<button class="btn" data-act="remind" data-id="${pid}">Send reminder</button>` : ''}${b > 0 ? `<button class="btn ghost" data-act="qr" data-id="${pid}">Show QR</button>` : ''}<button class="btn ghost" data-act="addfor" data-id="${pid}">Add entry</button><button class="btn ghost" data-act="share" data-id="${pid}">Share link</button><button class="btn ghost" data-act="stmt" data-id="${pid}">Statement</button>${both ? `<button class="btn ghost" data-act="settle" data-id="${pid}">Settle up</button>` : ''}</div>
   ${(S.recurring || []).filter(r => r.personId === pid).map(r => `<div class="en"><div class="top"><div><b>${esc(r.reason)}</b><div class="m">Repeats ${r.every} · next ${r.next}</div></div><b>${fmt(r.amount)}</b></div><div class="ac"><button class="x" data-act="stoprec" data-id="${r.id}">Stop repeating</button></div></div>`).join('')}${open.map(card).join('')}${done.length ? `<div class="sec" style="margin:18px 4px 10px"><h2>Settled</h2></div>${done.map(card).join('')}` : ''}
   ${!open.length && !done.length ? '<div class="empty">No entries yet.</div>' : ''}
-  <button class="btn ghost danger" style="margin-top:12px" data-act="delp" data-id="${pid}">Remove ${esc(p.name)}</button>`);
+  <button class="btn ghost" style="margin-top:12px" data-act="editp" data-id="${pid}">Edit details</button>
+  <button class="btn ghost danger" style="margin-top:10px" data-act="delp" data-id="${pid}">Remove ${esc(p.name)}</button>`);
 }
 function remind(pid) {
   const p = S.people.find(x => x.id === pid), o = openOf(pid).filter(e => e.dir === 'lent'); if (!o.length) return;
@@ -394,17 +415,22 @@ async function onGoogle(r) {
 function finish(j) {
   if (localStorage.getItem('dues.email') !== j.me.email) { S = {people: [], entries: [], payments: []}; store(); }
   localStorage.setItem('dues.token', j.token); setMe(j.me); $('#ap').value = '';
-  $('#auth').classList.remove('show'); render(); load();
+  $('#auth').classList.remove('show'); render(); load(); maybeTour();
 }
 function authMode(m) {
-  AM = m; document.querySelectorAll('#auth .seg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
-  $('#aName').style.display = m === 'signup' ? '' : 'none'; $('#aBtn').textContent = m === 'signup' ? 'Create account' : 'Log in';
-  $('#aSub').textContent = m === 'signup' ? 'Create your account' : 'Welcome back'; $('#aErr').textContent = '';
-  $('#ap').autocomplete = m === 'signup' ? 'new-password' : 'current-password';
+  AM = m; const fr = m === 'forgot' || m === 'reset';
+  document.querySelectorAll('#auth .seg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  $('#auth .seg').style.display = fr ? 'none' : ''; $('#aName').style.display = m === 'signup' ? '' : 'none'; $('#aPw').style.display = m === 'forgot' ? 'none' : '';
+  $('#aCode').style.display = m === 'reset' ? '' : 'none'; $('#aFg').style.display = m === 'login' ? '' : 'none'; $('#aBk').style.display = fr ? '' : 'none';
+  $('#aBtn').textContent = {login: 'Log in', signup: 'Create account', forgot: 'Send code', reset: 'Set new password'}[m];
+  $('#aSub').textContent = {login: 'Welcome back', signup: 'Create your account', forgot: 'We will email you a code', reset: 'Enter the code and a new password'}[m]; $('#aErr').textContent = '';
+  $('#ap').autocomplete = m === 'login' ? 'current-password' : 'new-password';
 }
 async function doAuth() {
   const b = $('#aBtn'); b.disabled = true; $('#aErr').textContent = '';
   try {
+    if (AM === 'forgot') { const f = await call({action: 'forgot', email: $('#ae').value}); if (f.error) { $('#aErr').textContent = f.error; return; } authMode('reset'); toast('If that account exists, a code is on its way'); return; }
+    if (AM === 'reset') { const f = await call({action: 'reset', email: $('#ae').value, code: $('#ac').value, password: $('#ap').value}); if (f.error) { $('#aErr').textContent = f.error; return; } $('#ap').value = ''; authMode('login'); toast('Password updated. Log in.'); return; }
     const j = await call({action: AM, email: $('#ae').value, password: $('#ap').value, name: $('#an').value});
     if (j.error) { $('#aErr').textContent = j.error; return; }
     finish(j);
@@ -431,6 +457,50 @@ function fx() {
   const x = c.getContext('2d'), P = Array.from({length: 70}, () => ({x: innerWidth / 2, y: innerHeight * .62, vx: (Math.random() - .5) * 12, vy: -Math.random() * 14 - 4, r: Math.random() * 5 + 3, h: Math.random() * 360, a: 1}));
   (function f() { x.clearRect(0, 0, c.width, c.height); P.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .45; p.a -= .012; x.globalAlpha = Math.max(p.a, 0); x.fillStyle = `hsl(${p.h} 90% 60%)`; x.fillRect(p.x, p.y, p.r, p.r * 1.6); }); P[0].a > 0 ? requestAnimationFrame(f) : c.remove(); })();
 }
+function editSheet(id) {
+  const e = S.entries.find(x => x.id === id);
+  sheet(`<h3>Edit entry</h3><div class="f"><label>Amount</label><input id="ea" class="amt-in" inputmode="decimal" value="${e.amount}"></div>
+  <div class="f"><label>What is it for?</label><input id="er" value="${esc(e.reason)}"></div><div class="f"><label>Date</label><input id="ed" type="date" value="${e.date}"></div>
+  <button class="btn" data-act="editsave" data-id="${id}">Save changes</button>`);
+}
+function editP(id) {
+  const p = S.people.find(x => x.id === id);
+  sheet(`<h3>Edit details</h3><div class="f"><label>Name</label><input id="pn" value="${esc(p.name)}"></div><div class="f"><label>WhatsApp number</label><input id="pp" inputmode="tel" value="${esc(p.phone || '')}"></div>
+  <button class="btn" data-act="psave" data-id="${id}">Save</button><button class="btn ghost" style="margin-top:10px" data-act="unshare" data-id="${id}">Stop sharing view link</button>`);
+}
+async function shareLink(pid) {
+  if (!API_URL) return toast('Connect your Google Sheet first');
+  const p = S.people.find(x => x.id === pid);
+  try {
+    await flush(); const j = await call({action: 'share', personId: pid}); if (j.error) return toast(j.error);
+    const url = location.origin + location.pathname.replace(/[^/]*$/, '') + 'view.html?a=' + encodeURIComponent(API_URL) + '&t=' + j.token;
+    if (navigator.share) navigator.share({title: 'Dues', text: `Hi ${p.name}, here is what is open between us:`, url}).catch(() => {});
+    else { navigator.clipboard && navigator.clipboard.writeText(url); toast('Link copied'); }
+  } catch (e) { toast('Could not create the link. Check your connection.'); }
+}
+function statement(pid) {
+  const p = S.people.find(x => x.id === pid), b = bal(pid);
+  const tr = S.entries.filter(e => e.personId === pid).sort((x, y) => x.date.localeCompare(y.date)).map(e => `<tr><td>${e.date}</td><td>${esc(e.reason)}</td><td>${e.dir === 'lent' ? 'They owe me' : 'I owe them'}</td><td>${fmt(e.amount)}</td><td>${fmt(paidOf(e))}</td><td>${fmt(leftOf(e))}</td></tr>`).join('');
+  const w = window.open('', '_blank'); if (!w) return toast('Allow pop-ups to export');
+  w.document.write(`<!doctype html><title>Statement - ${esc(p.name)}</title><meta name="viewport" content="width=device-width"><style>body{font:14px system-ui;padding:24px}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #ddd;padding:8px;text-align:left}h2{margin-bottom:4px}</style>
+  <h2>Statement: ${esc(p.name)}</h2><p>${new Date().toLocaleDateString('en-IN')} · ${b > 0 ? esc(p.name) + ' owes ' + fmt(b) : b < 0 ? 'Owed to ' + esc(p.name) + ': ' + fmt(-b) : 'All settled'}</p>
+  <table><tr><th>Date</th><th>For</th><th>Type</th><th>Amount</th><th>Paid</th><th>Left</th></tr>${tr}</table><script>setTimeout(function(){print()},300)<\/script>`);
+  w.document.close();
+}
+function exportCSV() {
+  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+  const rows = [['Person', 'Direction', 'Amount', 'Paid', 'Left', 'Reason', 'Date']].concat(S.entries.map(e => [(S.people.find(x => x.id === e.personId) || {}).name || '', e.dir === 'lent' ? 'They owe me' : 'I owe them', e.amount, paidOf(e), leftOf(e), e.reason, e.date]));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.map(r => r.map(q).join(',')).join('\n')], {type: 'text/csv'})); a.download = 'dues-export.csv'; a.click();
+}
+const TOUR = [['Track every rupee', 'Tap Add to split a bill or record a loan. Each person gets their own running balance.'], ['Swipe to act', 'Swipe a person right to send a reminder, or left to settle up. Tap them for details, edits and sharing.'], ['Get paid faster', 'Add your UPI ID in Settings. Reminders then carry a payment link, and you can show a QR or share a live balance link.']];
+let ti = 0;
+function maybeTour() { if (localStorage.getItem('dues.tour') || $('#auth').classList.contains('show')) return; ti = 0; tour(); }
+function tourEnd() { localStorage.setItem('dues.tour', '1'); $('#tour').classList.remove('show'); }
+function tour() {
+  const t = $('#tour'), [h, p] = TOUR[ti]; t.classList.add('show');
+  t.innerHTML = `<div class="glass tcard"><div class="dots">${TOUR.map((_, i) => `<i class="${i === ti ? 'on' : ''}"></i>`).join('')}</div><h3>${h}</h3><p>${p}</p>
+  <button class="btn" data-act="tnext">${ti < TOUR.length - 1 ? 'Next' : 'Get started'}</button><button class="lnk" data-act="tskip" style="display:block;margin:12px auto 0">Skip</button></div>`;
+}
 const addP = (d, e) => { const x = new Date(d + 'T00:00:00');
   if (e === 'weekly') x.setDate(x.getDate() + 7); else { const day = x.getDate(); x.setDate(1); x.setMonth(x.getMonth() + 1); x.setDate(Math.min(day, new Date(x.getFullYear(), x.getMonth() + 1, 0).getDate())); }
   return new Date(x.getTime() - x.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
@@ -448,8 +518,8 @@ function swipeAct(pid, k) {
   const p = S.people.find(x => x.id === pid), b = bal(pid);
   if (k === 'remind') return b > 0 ? remind(pid) : toast(`${p.name} doesn't owe you anything`);
   const o = openOf(pid); if (!o.length) return toast('Already settled');
-  if (!confirm(`Mark everything with ${p.name} as fully paid?`)) return;
-  o.forEach(e => put('payments', {id: uid(), entryId: e.id, amount: leftOf(e), date: today(), owner: 'me'})); render(); toast('Settled'); fx();
+  const added = o.map(e => ({id: uid(), entryId: e.id, amount: leftOf(e), date: today(), owner: 'me'})); added.forEach(x => put('payments', x)); render();
+  toast('Settled', () => { added.forEach(x => del('payments', x.id)); render(); }); fx();
 }
 function summary(off) {
   const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + off);
@@ -471,6 +541,7 @@ function settings() {
   ${API_URL ? `<div class="f"><label>Signed in as</label><div class="tog" style="margin:0"><span>${esc(localStorage.getItem('dues.email') || '')}</span><button data-act="logout" style="color:var(--out);font-weight:700">Log out</button></div></div>` : ''}
   <div class="f"><label>Your name (shown on payment requests)</label><input id="nm" value="${esc(localStorage.getItem('dues.name') || '')}"></div><div class="f"><label>Your UPI ID</label><input id="upi" value="${esc(localStorage.getItem('dues.upi') || '')}" placeholder="name@bank"></div>
   <p class="hint">${API_URL ? 'Connected to Google Sheets.' : 'Local mode. Data stays on this device until you set API_URL in index.html.'}</p>
+  <button class="btn ghost" style="margin-bottom:10px" data-act="csv">Export all data (CSV)</button><button class="btn ghost" style="margin-bottom:10px" data-act="tourr">Replay quick tour</button>
   <button class="btn" data-act="savekey">Save</button>`);
 }
 function applyTheme() {
@@ -503,8 +574,9 @@ document.addEventListener('click', e => {
     if (!(v > 0) || v > leftOf(en) + .001) return toast('Enter an amount up to ' + fmt(leftOf(en)));
     put('payments', {id: uid(), entryId: id, amount: v, date: today(), owner: 'me'}); personSheet(en.personId); render(); toast('Payment recorded'); if (!bal(en.personId)) fx();
   }
-  else if (act === 'delen') { const en = S.entries.find(x => x.id === id); if (!confirm('Delete this entry?')) return;
-    S.payments.filter(p => p.entryId === id).forEach(p => del('payments', p.id)); del('entries', id); personSheet(en.personId); render(); }
+  else if (act === 'delen') { const en = S.entries.find(x => x.id === id), ps = S.payments.filter(p => p.entryId === id);
+    ps.forEach(p => del('payments', p.id)); del('entries', id); personSheet(en.personId); render();
+    toast('Entry deleted', () => { put('entries', en); ps.forEach(p => put('payments', p)); personSheet(en.personId); render(); }); }
   else if (act === 'delp') { if (!confirm('Remove this person and all their entries?')) return;
     S.entries.filter(x => x.personId === id).forEach(en => { S.payments.filter(p => p.entryId === en.id).forEach(p => del('payments', p.id)); del('entries', en.id); });
     del('people', id); closeSheet(); render(); }
@@ -513,6 +585,23 @@ document.addEventListener('click', e => {
   else if (act === 'savekey') { const nm = $('#nm').value.trim(), up = $('#upi').value.trim(); localStorage.setItem('dues.name', nm); localStorage.setItem('dues.upi', up);
     sync({action: 'profile', name: nm, upi: up}); greet(); closeSheet(); toast('Saved'); }
   else if (act === 'qr') qrSheet(id);
+  else if (act === 'forgot') authMode('forgot');
+  else if (act === 'edit') editSheet(id);
+  else if (act === 'editsave') { const en = S.entries.find(x => x.id === id), a = parseFloat($('#ea').value);
+    if (!(a > 0)) return toast('Enter an amount'); if (a < paidOf(en) - .001) return toast('Already paid ' + fmt(paidOf(en)) + '. Amount cannot be lower.');
+    put('entries', {...en, amount: a, reason: $('#er').value.trim() || en.reason, date: $('#ed').value || en.date}); personSheet(en.personId); render(); toast('Updated'); }
+  else if (act === 'editp') editP(id);
+  else if (act === 'psave') { const p = S.people.find(x => x.id === id); put('people', {...p, name: $('#pn').value.trim() || p.name, phone: $('#pp').value.trim()}); personSheet(id); render(); }
+  else if (act === 'unshare') { sync({action: 'unshare', personId: id}); toast('View link disabled'); }
+  else if (act === 'share') shareLink(id);
+  else if (act === 'stmt') statement(id);
+  else if (act === 'csv') exportCSV();
+  else if (act === 'tsave') { A.tsave = !A.tsave; upd(); }
+  else if (act === 'tpl') { const tp = S.templates.find(x => x.id === id); A.mode = 'split'; A.sel = new Set(tp.people.split(',').filter(i => S.people.some(p => p.id === i))); $('#reason').value = tp.reason; upd(); }
+  else if (act === 'tpldel') { del('templates', id); upd(); }
+  else if (act === 'tnext') { if (ti < TOUR.length - 1) { ti++; tour(); } else tourEnd(); }
+  else if (act === 'tskip') tourEnd();
+  else if (act === 'tourr') { closeSheet(); localStorage.removeItem('dues.tour'); ti = 0; tour(); }
   else if (act === 'summary') summary(0);
   else if (act === 'sm') summary(+t.dataset.o);
   else if (act === 'rep') { A.rep = {'': 'monthly', monthly: 'weekly', weekly: ''}[A.rep]; upd(); }
@@ -547,6 +636,8 @@ greet();
 $('#date').textContent = new Date().toLocaleDateString('en-IN', {weekday: 'long', day: 'numeric', month: 'long'});
 setTimeout(() => { fixDates(); render(); if (API_URL && !tok()) showAuth(); if (!API_URL) runRecurring(); }, 1700);
 setTimeout(() => { $('#splash').classList.add('gone'); setTimeout(() => $('#splash').remove(), 800); }, 2000);
+$('#q').addEventListener('input', render);
+setTimeout(maybeTour, 2600);
 load();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
 </script>
