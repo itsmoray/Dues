@@ -17,13 +17,17 @@ const q=new URLSearchParams(location.search),api=q.get('a')||'',t=q.get('t')||''
 const fmt=n=>'₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:Number.isInteger(+n)?0:2,maximumFractionDigits:2});
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const days=d=>Math.max(0,Math.round((new Date(new Date().toDateString())-new Date(d+'T00:00:00'))/864e5));
+function payBtns(qs){const ua=navigator.userAgent,and=/Android/i.test(ua),ios=/iPhone|iPad|iPod/i.test(ua);
+ const a=and?[['Google Pay','com.google.android.apps.nbu.paisa.user'],['PhonePe','com.phonepe.app'],['Paytm','net.one97.paytm']].map(([n,p])=>['Pay with '+n,'intent://pay?'+qs+'#Intent;scheme=upi;package='+p+';end'])
+  :ios?[['Pay with Google Pay','tez://upi/pay?'+qs],['Pay with PhonePe','phonepe://pay?'+qs],['Pay with Paytm','paytmmp://pay?'+qs]]:[];
+ a.push(['Choose another UPI app','upi://pay?'+qs]);return a.map(([n,h])=>'<a class="b" href="'+h+'">'+n+'</a>').join('')}
 if(!/^https:\/\/script\.google\.com\//.test(api)||!t){c.textContent='This link is not valid.'}
 else fetch(api,{method:'POST',body:JSON.stringify({action:'view',token:t})}).then(r=>r.json()).then(j=>{
  if(j.error){c.textContent=j.error;return}
  const owe=j.total>0;
  c.innerHTML=`<small>${esc(j.from)} shared this with ${esc(j.person)}</small><h1>${j.total===0?'All settled':fmt(Math.abs(j.total))}</h1><small>${owe?'Currently open':j.total<0?esc(j.from)+' owes you':''}</small>
  <div class="l">${j.items.map(i=>`<div class="r"><div><b>${esc(i.reason)}</b><br><small>${esc(i.date)} · day ${days(i.date)}${i.dir!=='lent'?' · owed to you':''}</small></div><b>${fmt(i.left)}</b></div>`).join('')}</div>
- ${owe&&j.upi?`<a class="b" href="upi://pay?pa=${encodeURIComponent(j.upi)}&pn=${encodeURIComponent(j.from)}&am=${j.total}&cu=INR&tn=Dues">Pay ${fmt(j.total)}</a><button id="cp">Copy UPI ID</button>`:''}`;
+ ${owe&&j.upi?payBtns('pa='+encodeURIComponent(j.upi)+'&pn='+encodeURIComponent(j.from)+'&am='+j.total+'&cu=INR&tn=Dues')+'<button id="cp">Copy UPI ID</button>':''}`;
  const cp=document.getElementById('cp');if(cp)cp.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(j.upi);cp.textContent='Copied'};
 }).catch(()=>{c.textContent='Could not load. Check your connection.'});
 </script></body></html>
