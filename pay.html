@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pay</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#F2F3FB;--solid:#fff;--ink:#12142B;--mute:#6A6E8F;--line:rgba(18,20,43,.1);--a1:#6D5BFF;--a2:#14BDE0}
+@media(prefers-color-scheme:dark){:root{--bg:#080B1A;--solid:#12162D;--ink:#EEF0FF;--mute:#8D93B8;--line:rgba(255,255,255,.1)}}
+*{box-sizing:border-box;margin:0}body{min-height:100vh;display:grid;place-items:center;padding:20px;background:var(--bg);color:var(--ink);font:600 15px Manrope,system-ui,sans-serif}
+.c{width:100%;max-width:380px;background:var(--solid);border:1px solid var(--line);border-radius:28px;padding:28px 22px;text-align:center;box-shadow:0 20px 50px -24px rgba(60,50,160,.4)}
+small{color:var(--mute)}h1{font:700 40px Sora,sans-serif;letter-spacing:-.03em;margin:6px 0 4px}
+.qr{background:#fff;padding:14px;border-radius:20px;width:fit-content;margin:18px auto}
+a.b,button{display:block;width:100%;padding:16px;border-radius:16px;border:0;font:700 16px inherit;color:#fff;text-decoration:none;background:linear-gradient(135deg,var(--a1),var(--a2));margin-top:10px;cursor:pointer}
+button{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+</style></head><body>
+<div class="c" id="c"><small>Pay</small><div id="who" style="font-weight:700;font-size:18px"></div><h1 id="amt"></h1><small id="note"></small>
+<div class="qr" id="qr"></div>
+<div id="apps"></div><button id="cp">Copy UPI ID</button>
+<p style="margin-top:14px"><small>On a phone, tap your app. If nothing happens inside WhatsApp, open this page in your browser. On a computer, scan the QR.</small></p></div>
+<script>
+const q=new URLSearchParams(location.search),pa=q.get('pa')||'',am=parseFloat(q.get('am'))||0;
+if(!/^[\w.\-]{2,}@[\w.\-]{2,}$/.test(pa)){document.getElementById('c').textContent='This payment link is not valid.'}
+else{
+ const raw='upi://pay?pa='+encodeURIComponent(pa)+'&pn='+encodeURIComponent(q.get('pn')||'')+(am>0?'&am='+am:'')+'&cu=INR&tn='+encodeURIComponent((q.get('tn')||'Dues').slice(0,40));
+ document.getElementById('who').textContent=(q.get('pn')||'')+' · '+pa;
+ document.getElementById('amt').textContent=am>0?'₹'+am.toLocaleString('en-IN'):'Any amount';
+ const qs=raw.split('?')[1],ua=navigator.userAgent,and=/Android/i.test(ua),ios=/iPhone|iPad|iPod/i.test(ua);
+ const apps=and?[['Google Pay','com.google.android.apps.nbu.paisa.user'],['PhonePe','com.phonepe.app'],['Paytm','net.one97.paytm']].map(([n,p])=>['Pay with '+n,'intent://pay?'+qs+'#Intent;scheme=upi;package='+p+';end'])
+  :ios?[['Pay with Google Pay','tez://upi/pay?'+qs],['Pay with PhonePe','phonepe://pay?'+qs],['Pay with Paytm','paytmmp://pay?'+qs]]:[];
+ apps.push(['Choose another UPI app',raw]);
+ document.getElementById('apps').innerHTML=apps.map(([n,h])=>'<a class="b" href="'+h+'">'+n+'</a>').join('');
+ document.getElementById('cp').onclick=e=>{navigator.clipboard&&navigator.clipboard.writeText(pa);e.target.textContent='Copied'};
+ try{new QRCode(document.getElementById('qr'),{text:raw,width:200,height:200})}catch(e){document.getElementById('qr').remove()}
+}
+</script></body></html>
