@@ -79,8 +79,8 @@ body.open .scrim{opacity:1;pointer-events:auto}body.open .sheet{transform:none}
 .seg button{flex:1;padding:10px 6px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--mute);transition:all .25s}
 .seg button.on{background:var(--solid);color:var(--ink);box-shadow:0 4px 14px -6px rgba(0,0,0,.35)}
 .f{margin-bottom:14px}.f label{display:block;font-size:13px;color:var(--mute);margin-bottom:6px}
-input{width:100%;padding:14px;border-radius:14px;background:var(--bg);border:1px solid var(--line);color:var(--ink);font:600 16px Manrope,sans-serif;outline:0;transition:border-color .2s,box-shadow .2s}
-input:focus{border-color:var(--a1);box-shadow:0 0 0 4px var(--g1)}
+input,textarea{width:100%;padding:14px;border-radius:14px;background:var(--bg);border:1px solid var(--line);color:var(--ink);font:600 16px Manrope,sans-serif;outline:0;transition:border-color .2s,box-shadow .2s}
+input:focus,textarea:focus{border-color:var(--a1);box-shadow:0 0 0 4px var(--g1)}
 .amt-in{font:700 28px Sora;letter-spacing:-.02em}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -132,6 +132,15 @@ transition:transform .45s cubic-bezier(.2,.9,.2,1),opacity .3s,visibility .45s;z
 .tcard{width:100%;max-width:420px;padding:24px;background:var(--solid);animation:rise .5s both}.tcard p{color:var(--mute);margin:6px 0 18px}
 .dots{display:flex;gap:6px;margin-bottom:14px}.dots i{width:8px;height:8px;border-radius:9px;background:var(--line);transition:all .3s}.dots i.on{width:22px;background:var(--a1)}
 .srch{margin-bottom:12px}
+textarea{resize:none;font:600 15px Manrope,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:14px;outline:0}
+.dot{width:34px;height:34px;border-radius:50%;border:3px solid transparent;box-shadow:0 0 0 1px var(--line)}.dot.on{border-color:var(--ink)}
+body.compact .sec,body.compact #q,body.compact #grps,body.compact #list,body.compact .over,body.compact .stats,body.compact .spark{display:none}
+body.compact.peek #q,body.compact.peek #list{display:block}body.compact.peek .sec,body.compact.peek #grps{display:flex}
+.lock{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:radial-gradient(60% 40% at 12% 0%,var(--g1),transparent),radial-gradient(50% 35% at 95% 8%,var(--g2),transparent),var(--bg)}.lock.show{display:flex}
+.lk{text-align:center;width:100%;max-width:320px;padding:20px}.lk h2{font-size:28px}.lk p{color:var(--mute);margin-top:4px;min-height:22px}
+.pd{display:flex;gap:16px;justify-content:center;margin:22px 0 26px}.pd i{width:14px;height:14px;border-radius:50%;border:2px solid var(--mute);transition:all .2s}.pd i.on{background:var(--a1);border-color:var(--a1);transform:scale(1.15)}
+.pd.bad{animation:shk .4s}@keyframes shk{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}.kp button{height:64px;border-radius:50%;background:var(--card);border:1px solid var(--line);font:600 24px Sora}.kp button:active{transform:scale(.92)}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
 button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-offset:2px}
 </style>
@@ -161,7 +170,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
     <div style="display:flex;gap:10px"><button class="icon" data-act="summary" aria-label="Summary"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button><button class="icon" data-act="settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
   </header>
 
-  <section class="glass hero">
+  <section class="glass hero" data-act="peek">
     <div class="ringwrap">
       <svg class="ring" viewBox="0 0 200 200">
         <circle class="trk" cx="100" cy="100" r="84"/>
@@ -187,6 +196,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a1);outline-off
 <button class="fab" data-act="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add</button>
 <div class="scrim" data-act="close"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="lock" id="lock"><div class="lk"><h2>Dues</h2><p id="lkMsg"></p><div class="pd" id="pd"><i></i><i></i><i></i><i></i></div><div class="kp" id="kp"></div>
+  <button class="lnk" id="lkBio" data-act="lkbio">Use Face ID or fingerprint</button><button class="lnk" id="lkFg" data-act="lkreset">Forgot PIN?</button><button class="lnk" id="lkCx" data-act="lkcx">Cancel</button></div></div>
 <div class="tour" id="tour"></div>
 <div class="toast" id="toast"></div>
 
@@ -203,6 +214,85 @@ const fmt = n => '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigit
 const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 const days = d => Math.max(0, Math.round((new Date(new Date().toDateString()) - new Date(d + 'T00:00:00')) / 864e5));
 const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* ---------- preferences, accent colours, sounds ---------- */
+const DEF = {haptic: 1, confetti: 1, sound: 0, compact: 0, accent: 'violet', lang: 'en'};
+const pf = k => { const v = JSON.parse(localStorage.getItem('dues.pref') || '{}')[k]; return v === undefined ? DEF[k] : v; };
+const setPf = (k, v) => { const o = JSON.parse(localStorage.getItem('dues.pref') || '{}'); o[k] = v; localStorage.setItem('dues.pref', JSON.stringify(o)); };
+const ACC = {violet: ['#6D5BFF', '#14BDE0'], ocean: ['#2F7DFF', '#12D6C5'], rose: ['#F0477F', '#FF9A5A'], emerald: ['#12B886', '#7BD66B'], amber: ['#F59F00', '#FF6B6B']};
+const hexA = (h, a) => `rgba(${parseInt(h.slice(1, 3), 16)},${parseInt(h.slice(3, 5), 16)},${parseInt(h.slice(5, 7), 16)},${a})`;
+function applyAccent() { const [a, b] = ACC[pf('accent')] || ACC.violet, r = document.documentElement.style; r.setProperty('--a1', a); r.setProperty('--a2', b); r.setProperty('--g1', hexA(a, .26)); r.setProperty('--g2', hexA(b, .19)); }
+function chime() { try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.connect(g); g.connect(c.destination); o.type = 'sine';
+  o.frequency.setValueAtTime(660, c.currentTime); o.frequency.setValueAtTime(880, c.currentTime + .12); g.gain.setValueAtTime(.12, c.currentTime); g.gain.exponentialRampToValueAtTime(.001, c.currentTime + .4); o.start(); o.stop(c.currentTime + .4); } catch (e) {} }
+
+/* ---------- languages (exact-phrase translation of the interface) ---------- */
+const TR = {
+ml: {'Good morning':'സുപ്രഭാതം','Good afternoon':'ശുഭ മധ്യാഹ്നം','Good evening':'ശുഭ സായാഹ്നം','You are owed':'നിങ്ങൾക്ക് കിട്ടാനുള്ളത്','You owe':'നിങ്ങൾ കൊടുക്കാനുള്ളത്','Owed to you':'നിങ്ങൾക്ക് കിട്ടാനുള്ളത്','Even':'സമം','All clear':'എല്ലാം തീർന്നു','People':'ആളുകൾ','Add':'ചേർക്കുക','No one here yet':'ഇതുവരെ ആരുമില്ല','All settled':'എല്ലാം തീർത്തു','Settled':'തീർത്തു','Remind':'ഓർമ്മിപ്പിക്കുക','Settle':'തീർപ്പാക്കുക','New entry':'പുതിയ എൻട്രി','Split a bill':'ബിൽ പങ്കിടുക','They owe me':'അവർ എനിക്ക് തരാനുണ്ട്','I owe them':'ഞാൻ അവർക്ക് കൊടുക്കാനുണ്ട്','Total bill':'ആകെ ബിൽ','Amount':'തുക','What is it for?':'എന്തിനാണ്?','Date':'തീയതി','Split with':'ആരോടൊപ്പം പങ്കിടണം','Save entry':'സേവ് ചെയ്യുക','Save':'സേവ്','Settings':'ക്രമീകരണങ്ങൾ','Theme':'തീം','System':'സിസ്റ്റം','Light':'ലൈറ്റ്','Dark':'ഡാർക്ക്','Log out':'ലോഗ് ഔട്ട്','Log in':'ലോഗിൻ','Sign up':'സൈൻ അപ്പ്','Email':'ഇമെയിൽ','Password':'പാസ്‌വേഡ്','Name':'പേര്','Forgot password?':'പാസ്‌വേഡ് മറന്നോ?','Send reminder':'ഓർമ്മപ്പെടുത്തൽ അയയ്ക്കുക','Show QR':'QR കാണിക്കുക','Add entry':'എൻട്രി ചേർക്കുക','Share link':'ലിങ്ക് പങ്കിടുക','Statement':'സ്റ്റേറ്റ്മെന്റ്','Settle up':'കണക്ക് തീർക്കുക','Edit':'തിരുത്തുക','Delete':'ഡിലീറ്റ്','Record payment':'പണമടവ് രേഖപ്പെടുത്തുക','Edit details':'വിവരങ്ങൾ തിരുത്തുക','Summary':'സംഗ്രഹം','Language':'ഭാഷ','Accent color':'നിറം','Compact home':'ചുരുക്കിയ ഹോം','Vibration':'വൈബ്രേഷൻ','Confetti':'കോൺഫെറ്റി','Sounds':'ശബ്ദം','App lock':'ആപ്പ് ലോക്ക്','Undo':'തിരികെ','Entry deleted':'എൻട്രി ഡിലീറ്റ് ചെയ്തു','Saved':'സേവ് ചെയ്തു','Search people, reasons or amounts':'ആളുകൾ, കാരണം, തുക തിരയുക','Enter your PIN':'PIN നൽകുക','Wrong PIN':'തെറ്റായ PIN','Paste payment SMS':'പേയ്മെന്റ് SMS പേസ്റ്റ് ചെയ്യുക'},
+hi: {'Good morning':'सुप्रभात','Good afternoon':'शुभ दोपहर','Good evening':'शुभ संध्या','You are owed':'आपको मिलना है','You owe':'आपको देना है','Owed to you':'आपको मिलना है','Even':'बराबर','All clear':'सब साफ़','People':'लोग','Add':'जोड़ें','No one here yet':'अभी कोई नहीं','All settled':'सब चुकता','Settled':'चुकता','Remind':'याद दिलाएँ','Settle':'चुकता करें','New entry':'नई एंट्री','Split a bill':'बिल बाँटें','They owe me':'उन्हें मुझे देना है','I owe them':'मुझे उन्हें देना है','Total bill':'कुल बिल','Amount':'राशि','What is it for?':'किसलिए?','Date':'तारीख़','Split with':'किसके साथ बाँटें','Save entry':'एंट्री सेव करें','Save':'सेव','Settings':'सेटिंग्स','Theme':'थीम','System':'सिस्टम','Light':'लाइट','Dark':'डार्क','Log out':'लॉग आउट','Log in':'लॉग इन','Sign up':'साइन अप','Email':'ईमेल','Password':'पासवर्ड','Name':'नाम','Forgot password?':'पासवर्ड भूल गए?','Send reminder':'रिमाइंडर भेजें','Show QR':'QR दिखाएँ','Add entry':'एंट्री जोड़ें','Share link':'लिंक शेयर करें','Statement':'स्टेटमेंट','Settle up':'हिसाब बराबर करें','Edit':'बदलें','Delete':'हटाएँ','Record payment':'भुगतान दर्ज करें','Edit details':'विवरण बदलें','Summary':'सारांश','Language':'भाषा','Accent color':'रंग','Compact home':'कॉम्पैक्ट होम','Vibration':'वाइब्रेशन','Confetti':'कॉन्फ़ेटी','Sounds':'आवाज़ें','App lock':'ऐप लॉक','Undo':'वापस','Entry deleted':'एंट्री हटाई गई','Saved':'सेव हो गया','Search people, reasons or amounts':'लोग, कारण या राशि खोजें','Enter your PIN':'अपना PIN डालें','Wrong PIN':'गलत PIN','Paste payment SMS':'पेमेंट SMS पेस्ट करें'}
+};
+const DR = {ml: [[/\bDay (\d+)/g, 'ദിവസം $1'], [/(\d+) open\b/, '$1 തീർപ്പാകാത്തത്']], hi: [[/\bDay (\d+)/g, 'दिन $1'], [/(\d+) open\b/, '$1 खुले']]};
+const tr = s => (TR[pf('lang')] || {})[s] || s;
+function trNode(n) {
+  const L = pf('lang'), d = TR[L]; if (!d) return;
+  if (n.nodeType === 3) { const k = n.nodeValue.trim(); if (d[k]) n.nodeValue = n.nodeValue.replace(k, d[k]); else DR[L].forEach(([r, x]) => { n.nodeValue = n.nodeValue.replace(r, x); }); return; }
+  if (n.nodeType !== 1 || n.tagName === 'SCRIPT' || n.tagName === 'STYLE') return;
+  if (n.placeholder && d[n.placeholder]) n.placeholder = d[n.placeholder];
+  n.childNodes.forEach(trNode);
+}
+new MutationObserver(ms => ms.forEach(m => { m.addedNodes.forEach(trNode); if (m.type === 'characterData') trNode(m.target); })).observe(document.body, {childList: true, subtree: true, characterData: true});
+
+/* ---------- app lock (PIN + optional Face ID / fingerprint). A convenience lock for this device. ---------- */
+const lockOn = () => !!localStorage.getItem('dues.pin');
+let lkBuf = '', lkMode = 'unlock', lkFirst = '', hidAt = 0;
+async function pinHash(p) { const b = new TextEncoder().encode('dues:' + p + ':' + (localStorage.getItem('dues.salt') || '')); return [...new Uint8Array(await crypto.subtle.digest('SHA-256', b))].map(x => x.toString(16).padStart(2, '0')).join(''); }
+function showLock(mode) { lkMode = mode; lkBuf = ''; lkFirst = ''; $('#lock').classList.add('show'); lkDraw(); }
+function lkDraw(msg) {
+  $('#lkMsg').textContent = msg || {unlock: 'Enter your PIN', set1: 'Choose a 4-digit PIN', set2: 'Repeat the PIN'}[lkMode];
+  document.querySelectorAll('#pd i').forEach((d, i) => d.classList.toggle('on', i < lkBuf.length));
+  $('#lkBio').style.display = lkMode === 'unlock' && localStorage.getItem('dues.bio') ? '' : 'none';
+  $('#lkFg').style.display = lkMode === 'unlock' && API_URL ? '' : 'none'; $('#lkCx').style.display = lkMode !== 'unlock' ? '' : 'none';
+}
+async function lkKey(k) {
+  if (k === 'del') lkBuf = lkBuf.slice(0, -1); else if (lkBuf.length < 4) lkBuf += k; lkDraw();
+  if (lkBuf.length < 4) return;
+  const pin = lkBuf; lkBuf = '';
+  if (lkMode === 'unlock') { if (await pinHash(pin) === localStorage.getItem('dues.pin')) { $('#lock').classList.remove('show'); return; } $('#pd').classList.add('bad'); setTimeout(() => $('#pd').classList.remove('bad'), 400); lkDraw('Wrong PIN'); }
+  else if (lkMode === 'set1') { lkFirst = pin; lkMode = 'set2'; lkDraw(); }
+  else {
+    if (pin !== lkFirst) { lkMode = 'set1'; return lkDraw('PINs did not match. Try again'); }
+    localStorage.setItem('dues.salt', [...crypto.getRandomValues(new Uint32Array(2))].join('-')); localStorage.setItem('dues.pin', await pinHash(pin)); $('#lock').classList.remove('show');
+    if (window.PublicKeyCredential && confirm('Also unlock with Face ID or fingerprint?')) { try { await bioRegister(); } catch (e) { toast('Biometrics are not available here'); } }
+    toast('App lock is on'); settings();
+  }
+}
+async function bioRegister() {
+  const c = await navigator.credentials.create({publicKey: {challenge: crypto.getRandomValues(new Uint8Array(32)), rp: {name: 'Dues'}, user: {id: crypto.getRandomValues(new Uint8Array(16)), name: 'dues-user', displayName: 'Dues'},
+    pubKeyCredParams: [{type: 'public-key', alg: -7}, {type: 'public-key', alg: -257}], authenticatorSelection: {authenticatorAttachment: 'platform', userVerification: 'required'}, timeout: 60000}});
+  localStorage.setItem('dues.bio', btoa(String.fromCharCode(...new Uint8Array(c.rawId))));
+}
+async function bioUnlock() {
+  const id = Uint8Array.from(atob(localStorage.getItem('dues.bio')), c => c.charCodeAt(0));
+  await navigator.credentials.get({publicKey: {challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{type: 'public-key', id}], userVerification: 'required', timeout: 60000}});
+  $('#lock').classList.remove('show');
+}
+
+/* ---------- match a pasted payment SMS to an open entry ---------- */
+function smsSheet(txt) {
+  sheet(`<h3>Match a payment SMS</h3><p class="hint">Paste the bank or UPI message. I will suggest which entry it pays off, and you confirm.</p>
+  <div class="f"><textarea id="smsT" rows="4" placeholder="Rs 500 credited to your account from Aadarsh via UPI">${esc(txt || '')}</textarea></div>
+  <button class="btn" data-act="smsgo">Find match</button><div id="smsR" style="margin-top:14px"></div>`);
+  if (txt) smsFind();
+}
+function smsFind() {
+  const t = $('#smsT').value, low = t.toLowerCase(), m = t.match(/(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i), a = m ? parseFloat(m[1].replace(/,/g, '')) : 0, out = $('#smsR');
+  if (!(a > 0)) { out.innerHTML = '<p class="hint">I could not find an amount in that message.</p>'; return; }
+  const inc = /credited|received|deposited/.test(low) || !/debited|paid to|sent to|withdrawn/.test(low);
+  const c = S.entries.filter(e => leftOf(e) > 0 && (e.dir === 'lent') === inc).map(e => { const p = S.people.find(x => x.id === e.personId) || {name: ''};
+    const nm = p.name.toLowerCase().split(/\s+/).filter(w => w.length > 2).some(w => low.includes(w));
+    return {e, p, s: (Math.abs(leftOf(e) - a) < .01 ? 3 : 0) + (nm ? 2 : 0)}; }).filter(x => x.s).sort((x, y) => y.s - x.s || x.e.date.localeCompare(y.e.date)).slice(0, 4);
+  out.innerHTML = `<p class="hint">${inc ? 'Money received' : 'Money paid'}: <b>${fmt(a)}</b></p>` + (c.length ? c.map(x => `<div class="en"><div class="top"><div><b>${esc(x.p.name)}</b><div class="m">${esc(x.e.reason)} · ${fmt(leftOf(x.e))} open</div></div></div>
+    <div class="ac"><button data-act="smsapply" data-id="${x.e.id}" data-a="${a}">Record ${fmt(Math.min(a, leftOf(x.e)))} as paid</button></div></div>`).join('') : '<p class="hint">No open entry matches that amount or name.</p>');
+}
 
 let S = JSON.parse(localStorage.getItem('dues.data') || 'null') || {people: [], entries: [], payments: []};
 S.recurring = S.recurring || []; S.templates = S.templates || [];
@@ -364,7 +454,7 @@ async function saveAdd() {
     put('entries', {id: uid(), personId: id, dir, amount, reason, date, owner: 'me', receipt: rid});
     if (A.rep) put('recurring', {id: uid(), personId: id, dir, amount, reason, every: A.rep, next: addP(date, A.rep), owner: 'me'}); });
   if (sp && A.tsave) put('templates', {id: uid(), name: reason, people: ids.join(','), reason, owner: 'me'});
-  closeSheet(); render(); toast(cu ? 'Split saved' : sp ? `Split saved. ${fmt(share)} each` : 'Entry saved'); navigator.vibrate && navigator.vibrate(12);
+  closeSheet(); render(); toast(cu ? 'Split saved' : sp ? `Split saved. ${fmt(share)} each` : 'Entry saved'); if (pf('haptic') && navigator.vibrate) navigator.vibrate(12); if (pf('sound')) chime();
 }
 
 function personSheet(pid) {
@@ -465,7 +555,7 @@ function settleUp(pid) {
   personSheet(pid); render(); toast(`Netted ${fmt(x)}`); if (!bal(pid)) fx();
 }
 function fx() {
-  navigator.vibrate && navigator.vibrate(18); if (reduce) return;
+  if (pf('haptic') && navigator.vibrate) navigator.vibrate(18); if (pf('sound')) chime(); if (reduce || !pf('confetti')) return;
   const c = document.createElement('canvas'); c.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:90'; c.width = innerWidth; c.height = innerHeight; document.body.appendChild(c);
   const x = c.getContext('2d'), P = Array.from({length: 70}, () => ({x: innerWidth / 2, y: innerHeight * .62, vx: (Math.random() - .5) * 12, vy: -Math.random() * 14 - 4, r: Math.random() * 5 + 3, h: Math.random() * 360, a: 1}));
   (function f() { x.clearRect(0, 0, c.width, c.height); P.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .45; p.a -= .012; x.globalAlpha = Math.max(p.a, 0); x.fillStyle = `hsl(${p.h} 90% 60%)`; x.fillRect(p.x, p.y, p.r, p.r * 1.6); }); P[0].a > 0 ? requestAnimationFrame(f) : c.remove(); })();
@@ -577,6 +667,11 @@ function settings() {
   <div class="f"><label>Your name (shown on payment requests)</label><input id="nm" value="${esc(localStorage.getItem('dues.name') || '')}"></div><div class="f"><label>Your UPI ID</label><input id="upi" value="${esc(localStorage.getItem('dues.upi') || '')}" placeholder="name@bank"></div>
   <p class="hint">${API_URL ? 'Connected to Google Sheets.' : 'Local mode. Data stays on this device until you set API_URL in index.html.'}</p>
   ${API_URL ? `<div class="tog" data-act="digest"><span>Daily email for overdue dues</span><i class="sw ${localStorage.getItem('dues.digest') ? 'on' : ''}"></i></div><button class="btn ghost" style="margin-bottom:10px" data-act="log">Activity log</button>` : ''}
+  <div class="f"><label>Language</label><div class="seg">${[['en', 'English'], ['ml', 'മലയാളം'], ['hi', 'हिन्दी']].map(([k, n]) => `<button class="${pf('lang') === k ? 'on' : ''}" data-act="lang" data-k="${k}">${n}</button>`).join('')}</div></div>
+  <div class="f"><label>Accent color</label><div class="chips">${Object.keys(ACC).map(k => `<button class="dot ${pf('accent') === k ? 'on' : ''}" data-act="accent" data-k="${k}" style="background:linear-gradient(135deg,${ACC[k][0]},${ACC[k][1]})" aria-label="${k}"></button>`).join('')}</div></div>
+  ${[['compact', 'Compact home'], ['haptic', 'Vibration'], ['confetti', 'Confetti'], ['sound', 'Sounds']].map(([k, l]) => `<div class="tog" data-act="pref" data-k="${k}"><span>${l}</span><i class="sw ${pf(k) ? 'on' : ''}"></i></div>`).join('')}
+  <div class="tog" data-act="lock"><span>App lock</span><i class="sw ${lockOn() ? 'on' : ''}"></i></div>
+  <button class="btn ghost" style="margin-bottom:10px" data-act="sms">Paste payment SMS</button>
   <button class="btn ghost" style="margin-bottom:10px" data-act="csv">Export all data (CSV)</button><button class="btn ghost" style="margin-bottom:10px" data-act="tourr">Replay quick tour</button>
   <button class="btn" data-act="savekey">Save</button>`);
 }
@@ -621,6 +716,22 @@ document.addEventListener('click', e => {
   else if (act === 'savekey') { const nm = $('#nm').value.trim(), up = $('#upi').value.trim(); localStorage.setItem('dues.name', nm); localStorage.setItem('dues.upi', up);
     sync({action: 'profile', name: nm, upi: up}); greet(); closeSheet(); toast('Saved'); }
   else if (act === 'qr') qrSheet(id);
+  else if (act === 'peek') { if (pf('compact')) document.body.classList.toggle('peek'); }
+  else if (act === 'lang') { setPf('lang', t.dataset.k); location.reload(); }
+  else if (act === 'accent') { setPf('accent', t.dataset.k); applyAccent(); settings(); }
+  else if (act === 'pref') { const k = t.dataset.k, v = pf(k) ? 0 : 1; setPf(k, v); t.querySelector('.sw').classList.toggle('on', !!v);
+    if (k === 'compact') { document.body.classList.toggle('compact', !!v); document.body.classList.remove('peek'); }
+    if (k === 'haptic' && v && navigator.vibrate) navigator.vibrate(15); if (k === 'sound' && v) chime(); }
+  else if (act === 'lock') { if (lockOn()) { if (confirm('Turn off app lock?')) { ['pin', 'salt', 'bio'].forEach(k => localStorage.removeItem('dues.' + k)); settings(); } } else showLock('set1'); }
+  else if (act === 'key') lkKey(t.dataset.k);
+  else if (act === 'lkbio') bioUnlock().catch(() => lkDraw('Use your PIN'));
+  else if (act === 'lkcx') $('#lock').classList.remove('show');
+  else if (act === 'lkreset') { if (confirm('Log out to reset the PIN? You will need your password to log in again.')) { ['pin', 'salt', 'bio'].forEach(k => localStorage.removeItem('dues.' + k)); $('#lock').classList.remove('show'); logout(); } }
+  else if (act === 'sms') smsSheet('');
+  else if (act === 'smsgo') smsFind();
+  else if (act === 'smsapply') { const en = S.entries.find(x => x.id === id), a = parseFloat(t.dataset.a), v = Math.min(a, leftOf(en));
+    put('payments', {id: uid(), entryId: id, amount: v, date: today(), owner: 'me'}); closeSheet(); render();
+    toast(`Recorded ${fmt(v)}` + (a > v + .001 ? `. ${fmt(a - v)} extra was not applied` : '')); if (!bal(en.personId)) fx(); }
   else if (act === 'grp') { G = t.dataset.g === 'All' ? '' : t.dataset.g; render(); }
   else if (act === 'rcpick') $('#rcF').click();
   else if (act === 'rcv') viewReceipt(id);
@@ -673,13 +784,19 @@ addEventListener('pointerup', swEnd); addEventListener('pointercancel', swEnd);
 
 /* ---------- boot ---------- */
 const h = new Date().getHours();
-const greet = () => { const n = (localStorage.getItem('dues.name') || '').split(' ')[0]; $('#greet').textContent = (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + (n ? ', ' + n : ''); };
+const greet = () => { const n = (localStorage.getItem('dues.name') || '').split(' ')[0]; $('#greet').textContent = tr(h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + (n ? ', ' + n : ''); };
 greet();
-$('#date').textContent = new Date().toLocaleDateString('en-IN', {weekday: 'long', day: 'numeric', month: 'long'});
+$('#date').textContent = new Date().toLocaleDateString(({ml: 'ml-IN', hi: 'hi-IN'})[pf('lang')] || 'en-IN', {weekday: 'long', day: 'numeric', month: 'long'});
 setTimeout(() => { fixDates(); render(); if (API_URL && !tok()) showAuth(); if (!API_URL) runRecurring(); }, 1700);
 setTimeout(() => { $('#splash').classList.add('gone'); setTimeout(() => $('#splash').remove(), 800); }, 2000);
 $('#q').addEventListener('input', render);
 setTimeout(maybeTour, 2600);
+$('#kp').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map(k => k === '' ? '<span></span>' : `<button data-act="key" data-k="${k}">${k === 'del' ? '⌫' : k}</button>`).join('');
+document.body.classList.toggle('compact', !!pf('compact')); applyAccent(); document.documentElement.lang = pf('lang');
+if (lockOn()) showLock('unlock');
+{ const sh = new URLSearchParams(location.search).get('text'); if (sh) setTimeout(() => smsSheet(sh), 2800); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) hidAt = Date.now(); else if (lockOn() && hidAt && Date.now() - hidAt > 20000 && !$('#lock').classList.contains('show')) showLock('unlock'); });
+if (pf('lang') !== 'en') trNode(document.body);
 load();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
 </script>
